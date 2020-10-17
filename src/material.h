@@ -15,11 +15,6 @@ public:
 	Light* light = NULL;
 
 	vec4 color;
-	vec3 ambient_k; //reflected ambient light
-	vec3 diffuse_k; //reflected diffuse light
-	vec3 specular_k; //reflected specular light
-
-	float alpha;
 
 	virtual void setUniforms(Camera* camera, Matrix44 model) = 0;
 	virtual void render(Mesh* mesh, Matrix44 model, Camera * camera) = 0;
@@ -35,6 +30,22 @@ public:
 	void setUniforms(Camera* camera, Matrix44 model);
 	void render(Mesh* mesh, Matrix44 model, Camera * camera);
 	void renderInMenu();
+};
+
+class PhongMaterial : public StandardMaterial {
+public:
+	vec3 ambient_k;
+	vec3 diffuse_k;
+	vec3 specular_k;
+
+	float alpha;
+
+	Shader* shader;
+
+	PhongMaterial();
+	~PhongMaterial();
+
+	void setUniforms(Camera* camera, Matrix44 model);
 };
 
 class WireframeMaterial : public StandardMaterial {

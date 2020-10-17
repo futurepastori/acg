@@ -2,7 +2,6 @@
 #include "utils.h"
 #include "mesh.h"
 #include "texture.h"
-#include "skybox.h"
 #include "volume.h"
 #include "fbo.h"
 #include "shader.h"
@@ -48,7 +47,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	// Initialize model matrix
 	model = new Matrix44();
 
-	/*
+	
 	// Create node and add it to the scene
 	SceneNode * node = new SceneNode("Scene node");
 	node_list.push_back(node);
@@ -59,7 +58,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	node->mesh = mesh;
 
 	// Set material
-	StandardMaterial* material = new StandardMaterial();
+	PhongMaterial* material = new PhongMaterial();
 	
 	// 
 	//	Q1: Create and load a texture without illumination 
@@ -72,18 +71,12 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	//
 	Light* light = new Light();
 	material->light = light;
-	material->shader = Shader::Get("data/shaders/phong.vs", "data/shaders/phong.fs");
 
-	node->material = material;*/
+	node->material = material;
 
 	/*
 		Q3: Skybox with city texture
 	*/
-	Light* light = new Light();
-	Texture* sky_texture = Texture::Get("data/textures/roughness.png");
-
-	Skybox* sky = new Skybox(sky_texture);
-	node_list.push_back(sky);
 
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse

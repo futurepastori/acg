@@ -109,9 +109,6 @@
     <ClCompile Include="..\..\src\light.cpp">
       <Filter>gfx</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\skybox.cpp">
-      <Filter>gfx</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\camera.h" />
@@ -216,9 +213,6 @@
       <Filter>extra</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\light.h">
-      <Filter>gfx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\skybox.h">
       <Filter>gfx</Filter>
     </ClInclude>
   </ItemGroup>

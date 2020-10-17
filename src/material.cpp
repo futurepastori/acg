@@ -4,15 +4,8 @@
 
 StandardMaterial::StandardMaterial()
 {
-	color = vec4(1.f, 1.f, 1.f, 1.f);
+	color = vec4(1.f, 0.f, 0.f, 1.f);
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/flat.fs");
-	
-	// Phong material color variables
-	ambient_k.set(0.35, 0.36, 0.35);
-	diffuse_k.set(0.80, 0.80, 0.80);
-	specular_k.set(0.95, 0.96, 0.95);
-
-	alpha = 35.0;
 }
 
 StandardMaterial::~StandardMaterial()
@@ -32,19 +25,6 @@ void StandardMaterial::setUniforms(Camera* camera, Matrix44 model)
 
 	if (texture)
 		shader->setUniform("u_texture", texture);
-
-	if (light) {
-		shader->setUniform("light_position", light->position);
-		shader->setUniform("diffuse_i", light->diffuse_color);
-		shader->setUniform("specular_i", light->specular_color);
-		shader->setUniform("ambient_i", light->ambient_color);
-
-		shader->setUniform("diffuse_k", diffuse_k);
-		shader->setUniform("specular_k", specular_k);
-		shader->setUniform("ambient_k", ambient_k);
-		
-		shader->setFloat("alpha", alpha);
-	}
 }
 
 void StandardMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
@@ -72,6 +52,49 @@ void StandardMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 void StandardMaterial::renderInMenu()
 {
 	ImGui::ColorEdit3("Color", (float*)&color); // Edit 3 floats representing a color
+}
+
+PhongMaterial::PhongMaterial()
+{
+	ambient_k.set(0.35, 0.36, 0.35);
+	diffuse_k.set(0.80, 0.80, 0.80);
+	specular_k.set(0.95, 0.96, 0.95);
+
+	alpha = 35.0;
+
+	shader = Shader::Get("data/shaders/phong.vs", "data/shaders/phong.fs");
+}
+
+void PhongMaterial::setUniforms(Camera* camera, Matrix44 model)
+{
+	//upload node uniforms
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	shader->setUniform("u_model", model);
+	shader->setUniform("u_time", Application::instance->time);
+
+	shader->setUniform("u_color", color);
+
+	if (texture)
+		shader->setUniform("u_texture", texture);
+
+	if (light) {
+		shader->setUniform("light_position", light->position);
+		shader->setUniform("diffuse_i", light->diffuse_color);
+		shader->setUniform("specular_i", light->specular_color);
+		shader->setUniform("ambient_i", light->ambient_color);
+
+		shader->setUniform("diffuse_k", diffuse_k);
+		shader->setUniform("specular_k", specular_k);
+		shader->setUniform("ambient_k", ambient_k);
+
+		shader->setFloat("alpha", alpha);
+	}
+}
+
+PhongMaterial::~PhongMaterial()
+{
+
 }
 
 WireframeMaterial::WireframeMaterial()
