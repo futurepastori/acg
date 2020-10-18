@@ -56,6 +56,7 @@ void StandardMaterial::renderInMenu()
 
 SkyboxMaterial::SkyboxMaterial()
 {
+	mesh = Mesh::Get("data/meshes/box.ASE");
 	shader = Shader::Get("data/shaders/skybox.vs", "data/shaders/skybox.fs");
 }
 
