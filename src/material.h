@@ -31,6 +31,8 @@ public:
 
 class SkyboxMaterial : public StandardMaterial {
 public:
+	
+	Mesh* mesh = NULL;
 
 	SkyboxMaterial();
 	~SkyboxMaterial();

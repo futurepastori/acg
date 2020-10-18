@@ -44,23 +44,25 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	camera->lookAt(Vector3(-5.f, 1.5f, 10.f), Vector3(0.f, 0.0f, 0.f), Vector3(0.f, 1.f, 0.f));
 	camera->setPerspective(45.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
-	// Skybox
-	SceneNode* node = new SceneNode("Skybox");
-	node_list.push_back(node);
+	// Scene Nodes
+	SceneNode* sky_node = new SceneNode("Skybox");
+	node_list.push_back(sky_node);
 
-	SkyboxMaterial* material = new SkyboxMaterial();
-	Shader* shader = Shader::Get("data/shaders/skybox.vs", "data/shaders/skybox.fs");
+	// Meshes
+	Mesh* box = Mesh::Get("data/meshes/box.ASE");
 
-	Texture* texture = new Texture();
-	texture->cubemapFromImages("data/environments/city");
-
-	Mesh* mesh = Mesh::Get("data/meshes/box.ASE");
+	// Materials
+	SkyboxMaterial* sky_material = new SkyboxMaterial();
 	
-	material->texture = texture;
-	material->shader = shader;
+	// Textures
+	Texture* sky_texture = new Texture();
 
-	node->mesh = mesh;
-	node->material = material;
+	// Q: Set a cubemap texture to a skybox
+	sky_texture->cubemapFromImages("data/environments/city");
+	sky_material->texture = sky_texture;
+
+	sky_node->mesh = box;
+	sky_node->material = sky_material;
 	
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
