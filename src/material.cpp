@@ -51,7 +51,7 @@ void StandardMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 
 void StandardMaterial::renderInMenu()
 {
-	ImGui::ColorEdit3("Color", (float*)&color); // Edit 3 floats representing a color
+	ImGui::ColorEdit3("Color", (float*)&color);
 }
 
 SkyboxMaterial::SkyboxMaterial()
