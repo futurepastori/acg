@@ -3,6 +3,7 @@
 
 #include "framework.h"
 #include "shader.h"
+#include "light.h"
 #include "camera.h"
 #include "mesh.h"
 
@@ -29,11 +30,26 @@ public:
 	void renderInMenu();
 };
 
+class PhongMaterial : public StandardMaterial {
+public:
+
+	Light* light = NULL;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+
+	float shininess;
+	
+	PhongMaterial();
+	~PhongMaterial();
+
+	void setUniforms(Camera* camera, Matrix44 model);
+};
+
 class SkyboxMaterial : public StandardMaterial {
 public:
 	
-	Mesh* mesh = NULL;
-
 	SkyboxMaterial();
 	~SkyboxMaterial();
 

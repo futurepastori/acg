@@ -6,10 +6,10 @@
 class Light
 {
 public:
-	Vector3 position; //where is the light
-	Vector3 diffuse_color; //the amount (and color) of diffuse
-	Vector3 specular_color; //the amount (and color) of specular
-	Vector3 ambient_color; //the amount (and color) of ambient
+	vec3 position; //where is the light
+	vec3 diffuse; //the amount (and color) of diffuse
+	vec3 specular; //the amount (and color) of specular
+	vec3 ambient; //the amount (and color) of ambient
 
 	Light();
 };

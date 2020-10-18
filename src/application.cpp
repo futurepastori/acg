@@ -2,6 +2,7 @@
 #include "utils.h"
 #include "mesh.h"
 #include "texture.h"
+#include "light.h"
 #include "volume.h"
 #include "fbo.h"
 #include "shader.h"
@@ -46,19 +47,31 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 
 	// Scene Nodes
 	SceneNode* sky_node = new SceneNode("Skybox");
+	SceneNode* main_node = new SceneNode("Main node");
+
 	node_list.push_back(sky_node);
+	node_list.push_back(main_node);
 
 	// Meshes
 	Mesh* box = Mesh::Get("data/meshes/box.ASE");
+	Mesh* sphere = Mesh::Get("data/meshes/sphere.obj");
 
 	// Materials
 	SkyboxMaterial* sky_material = new SkyboxMaterial();
+	PhongMaterial* phong_material = new PhongMaterial();
 	
 	// Textures
 	Texture* sky_texture = new Texture();
+	Texture* main_texture = Texture::Get("data/textures/roughness.png");
+
+	// Q: Set Phong lighting to an object
+	phong_material->texture = main_texture;
+
+	main_node->mesh = sphere;
+	main_node->material = phong_material;
 
 	// Q: Set a cubemap texture to a skybox
-	sky_texture->cubemapFromImages("data/environments/city");
+	sky_texture->cubemapFromImages("data/environments/snow");
 	sky_material->texture = sky_texture;
 
 	sky_node->mesh = box;
