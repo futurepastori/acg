@@ -32,12 +32,7 @@ public:
 
 	//some vars
 	static Camera* camera; //our GLOBAL camera
-	bool mouse_locked; //tells if the mouse is lockedS (not seen)
-
-	// Skybox global variables
-	Material* skymaterial = NULL;
-	Mesh* skymesh = NULL;
-	Matrix44* model;
+	bool mouse_locked; //tells if the mouse is locked (not seen)
 
 	Application( int window_width, int window_height, SDL_Window* window );
 

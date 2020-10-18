@@ -34,7 +34,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	time = 0.0f;
 	elapsed_time = 0.0f;
 	mouse_locked = false;
-
+	
 	// OpenGL flags
 	glEnable( GL_CULL_FACE ); //render both sides of every triangle
 	glEnable( GL_DEPTH_TEST ); //check the occlusions using the Z buffer
@@ -44,40 +44,24 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	camera->lookAt(Vector3(-5.f, 1.5f, 10.f), Vector3(0.f, 0.0f, 0.f), Vector3(0.f, 1.f, 0.f));
 	camera->setPerspective(45.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
-	// Initialize model matrix
-	model = new Matrix44();
-
-	
-	// Create node and add it to the scene
-	SceneNode * node = new SceneNode("Scene node");
+	// Skybox
+	SceneNode* node = new SceneNode("Skybox");
 	node_list.push_back(node);
 
-	// Set mesh to node
-	Mesh* mesh = new Mesh();
-	mesh = Mesh::Get("data/meshes/sphere.obj");
-	node->mesh = mesh;
+	SkyboxMaterial* material = new SkyboxMaterial();
+	Shader* shader = Shader::Get("data/shaders/skybox.vs", "data/shaders/skybox.fs");
 
-	// Set material
-	PhongMaterial* material = new PhongMaterial();
+	Texture* texture = new Texture();
+	texture->cubemapFromImages("data/environments/city");
+
+	Mesh* mesh = Mesh::Get("data/meshes/box.ASE");
 	
-	// 
-	//	Q1: Create and load a texture without illumination 
-	//
-	Texture* tex = Texture::Get("data/textures/roughness.png");
-	material->texture = tex;
+	material->texture = texture;
+	material->shader = shader;
 
-	//
-	//	Q2: Adding Phong illumination using Phong shaders
-	//
-	Light* light = new Light();
-	material->light = light;
-
+	node->mesh = mesh;
 	node->material = material;
-
-	/*
-		Q3: Skybox with city texture
-	*/
-
+	
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 }
@@ -90,8 +74,8 @@ void Application::render(void)
 
 	// Clear the window and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	// set the camera as default
+
+	//set the camera as default
 	camera->enable();
 
 	for (int i = 0; i < node_list.size(); i++) {

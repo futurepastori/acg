@@ -4,7 +4,6 @@
 #include "framework.h"
 #include "shader.h"
 #include "camera.h"
-#include "light.h"
 #include "mesh.h"
 
 class Material {
@@ -12,8 +11,6 @@ public:
 
 	Shader* shader = NULL;
 	Texture* texture = NULL;
-	Light* light = NULL;
-
 	vec4 color;
 
 	virtual void setUniforms(Camera* camera, Matrix44 model) = 0;
@@ -32,20 +29,14 @@ public:
 	void renderInMenu();
 };
 
-class PhongMaterial : public StandardMaterial {
+class SkyboxMaterial : public StandardMaterial {
 public:
-	vec3 ambient_k;
-	vec3 diffuse_k;
-	vec3 specular_k;
 
-	float alpha;
+	SkyboxMaterial();
+	~SkyboxMaterial();
 
-	Shader* shader;
-
-	PhongMaterial();
-	~PhongMaterial();
-
-	void setUniforms(Camera* camera, Matrix44 model);
+	void render(Mesh* mesh, Matrix44 model, Camera* camera);
+	void setUniforms(Camera* camera);
 };
 
 class WireframeMaterial : public StandardMaterial {
@@ -54,7 +45,7 @@ public:
 	WireframeMaterial();
 	~WireframeMaterial();
 
-	void render(Mesh* mesh, Matrix44 model, Camera * camera);
+	void render(Mesh* mesh, Matrix44 model, Camera* camera);
 };
 
 #endif
