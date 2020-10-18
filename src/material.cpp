@@ -58,7 +58,7 @@ PhongMaterial::PhongMaterial()
 {
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 	light = new Light();
-	shader = Shader::Get("data/shaders/phong.vs", "data/shaders/phong.fs");
+	shader = Shader::Get("data/shaders/reflective.vs", "data/shaders/reflective.fs");
 
 	ambient.set(0.35, 0.36, 0.35);
 	diffuse.set(0.80, 0.80, 0.80);

@@ -62,13 +62,16 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	
 	// Textures
 	Texture* sky_texture = new Texture();
-	Texture* main_texture = Texture::Get("data/textures/roughness.png");
+	Texture* main_texture = new Texture();
 
 	// Q: Set Phong lighting to an object
+	// Q: Make the object shiny
+	main_texture->cubemapFromImages("data/environments/snow");
 	phong_material->texture = main_texture;
 
 	main_node->mesh = sphere;
 	main_node->material = phong_material;
+
 
 	// Q: Set a cubemap texture to a skybox
 	sky_texture->cubemapFromImages("data/environments/snow");
