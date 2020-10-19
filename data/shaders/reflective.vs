@@ -1,5 +1,3 @@
-#version 140
-
 attribute vec3 a_vertex;
 attribute vec3 a_normal;
 attribute vec2 a_uv;
@@ -18,7 +16,8 @@ varying vec4 v_color;
 
 void main() {
     v_normal = mat3(transpose(inverse(u_model))) * a_normal;
-    v_position = vec3(u_model * vec4(a_vertex, 1.0));
+    v_position = a_vertex;
+	v_world_position = (u_model * vec4( v_position, 1.0) ).xyz;
 
     gl_Position = u_viewprojection * vec4(v_position, 1.0);
 }
