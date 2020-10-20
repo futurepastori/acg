@@ -45,6 +45,7 @@ public:
 	~PhongMaterial();
 
 	void setUniforms(Camera* camera, Matrix44 model);
+	void renderInMenu();
 };
 
 class SkyboxMaterial : public StandardMaterial {
@@ -55,6 +56,15 @@ public:
 
 	void render(Mesh* mesh, Matrix44 model, Camera* camera);
 	void setUniforms(Camera* camera);
+};
+
+class MirrorMaterial : public StandardMaterial {
+public:
+
+	MirrorMaterial();
+	~MirrorMaterial();
+
+	void setUniforms(Camera* camera, Matrix44 model);
 };
 
 class WireframeMaterial : public StandardMaterial {

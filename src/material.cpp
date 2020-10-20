@@ -98,6 +98,15 @@ void PhongMaterial::setUniforms(Camera* camera, Matrix44 model)
 	}
 }
 
+void PhongMaterial::renderInMenu()
+{
+	ImGui::Text("PHONG PARAMETERS");
+	ImGui::SliderFloat("Shininess", (float*)&shininess, 0.0f, 50.0f);
+	ImGui::ColorEdit3("Ambient reflection", (float*)&ambient);
+	ImGui::ColorEdit3("Diffuse reflection", (float*)&diffuse);
+	ImGui::ColorEdit3("Specular reflection", (float*)&specular);
+}
+
 SkyboxMaterial::SkyboxMaterial()
 {
 	shader = Shader::Get("data/shaders/skybox.vs", "data/shaders/skybox.fs");
@@ -145,6 +154,29 @@ void SkyboxMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 		shader->disable();
 	}
 	glEnable(GL_DEPTH_TEST);
+}
+
+MirrorMaterial::MirrorMaterial()
+{
+	shader = Shader::Get("data/shaders/reflective.vs", "data/shaders/reflective.fs");
+}
+
+MirrorMaterial::~MirrorMaterial()
+{
+
+}
+
+void MirrorMaterial::setUniforms(Camera* camera, Matrix44 model)
+{
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	shader->setUniform("u_model", model);
+
+	shader->setUniform("u_color", color);
+
+	if (texture)
+		shader->setUniform("u_texture", texture);
+
 }
 
 WireframeMaterial::WireframeMaterial()
