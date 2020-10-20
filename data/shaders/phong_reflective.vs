@@ -13,6 +13,8 @@ varying vec3 v_position;
 varying vec3 v_world_position;
 varying vec3 v_world_normal;
 varying vec3 v_normal;
+varying vec3 v_normal_refl;
+
 varying vec2 v_uv;
 varying vec4 v_color;
 
@@ -20,6 +22,8 @@ void main()
 {	
 	//calcule the normal in camera space (the NormalMatrix is like ViewMatrix but without traslation)
 	v_normal = (u_model * vec4( a_normal, 0.0) ).xyz;
+	v_normal_refl = mat3(transpose(inverse(u_model))) * a_normal;
+
 	v_world_normal = (u_model * vec4( gl_Normal.xyz, 0.0)).xyz;
 	
 	//calcule the vertex in object space

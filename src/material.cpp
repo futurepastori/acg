@@ -158,7 +158,15 @@ void SkyboxMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 
 MirrorMaterial::MirrorMaterial()
 {
-	shader = Shader::Get("data/shaders/reflective.vs", "data/shaders/reflective.fs");
+	color = vec4(1.f, 1.f, 1.f, 1.f);
+	light = new Light();
+	shader = Shader::Get("data/shaders/phong_reflective.vs", "data/shaders/phong_reflective.fs");
+
+	ambient.set(0.65, 0.66, 0.65);
+	diffuse.set(0.80, 0.80, 0.80);
+	specular.set(0.95, 0.96, 0.95);
+
+	shininess = 35.0;
 }
 
 MirrorMaterial::~MirrorMaterial()
@@ -171,11 +179,25 @@ void MirrorMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	shader->setUniform("u_camera_position", camera->eye);
 	shader->setUniform("u_model", model);
+	shader->setUniform("u_time", Application::instance->time);
 
 	shader->setUniform("u_color", color);
 
 	if (texture)
 		shader->setUniform("u_texture", texture);
+
+	if (light) {
+		shader->setUniform("light_position", light->position);
+		shader->setUniform("diffuse_i", light->diffuse);
+		shader->setUniform("specular_i", light->specular);
+		shader->setUniform("ambient_i", light->ambient);
+
+		shader->setUniform("diffuse_k", diffuse);
+		shader->setUniform("specular_k", specular);
+		shader->setUniform("ambient_k", ambient);
+
+		shader->setFloat("alpha", shininess);
+	}
 
 }
 

@@ -60,6 +60,13 @@ public:
 
 class MirrorMaterial : public StandardMaterial {
 public:
+	Light* light = NULL;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+
+	float shininess;
 
 	MirrorMaterial();
 	~MirrorMaterial();

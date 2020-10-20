@@ -47,66 +47,38 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 
 	// Scene Nodes
 	SceneNode* sky_node = new SceneNode("Skybox");
-	SceneNode* main_node = new SceneNode("Main node");
+	main_node = new SceneNode("Main node");
 
 	node_list.push_back(sky_node);
 	node_list.push_back(main_node);
 
 	// Meshes
 	Mesh* box = Mesh::Get("data/meshes/box.ASE");
-	Mesh* sphere = Mesh::Get("data/meshes/sphere.obj");
+	sphere = Mesh::Get("data/meshes/sphere.obj");
+	bean = Mesh::Get("data/meshes/bean.obj");
 
 	// Materials
-	StandardMaterial* material = new StandardMaterial();
-	SkyboxMaterial* sky_material = new SkyboxMaterial();
-	PhongMaterial* phong_material = new PhongMaterial();
-	MirrorMaterial* mirror_material = new MirrorMaterial();
+	sky_material = new SkyboxMaterial();
+	phong_material = new PhongMaterial();
+	mirror_material = new MirrorMaterial();
 	
 	// Textures
 	Texture* sky_texture = new Texture();
-	Texture* main_texture = new Texture();
 	Texture* mirror_texture = new Texture();
 
-	// Q0 - BEGINNING - just colour
-	main_node->mesh = sphere;
-	main_node->material = material;
-	
-	// Q1 - TEXTURE without illumination
+	sky_texture->cubemapFromImages("data/environments/snow");
 	main_texture = Texture::Get("data/textures/roughness.png");
-	material->texture = main_texture;
-	material->shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
-	main_node->mesh = sphere;
-	main_node->material = material;
-	
-	
-	// Q2 - PHONG MATERIAL : Set Phong lighting to an object
-	
-	main_texture = Texture::Get("data/textures/roughness.png");
-	phong_material->texture = main_texture;
+	mirror_texture->cubemapFromImages("data/environments/snow");
+
+	sky_material->texture = sky_texture;
+	mirror_material->texture = mirror_texture;
+
+	sky_node->mesh = box;
+	sky_node->material = sky_material;	
 
 	main_node->mesh = sphere;
 	main_node->material = phong_material;
-	
-	
-	// Q3 - SKYBOX : Render a skybox in the place of background
-	//Set a cubemap texture to a skybox
 
-	sky_texture->cubemapFromImages("data/environments/snow");
-	sky_material->texture = sky_texture;
-
-	sky_node->mesh = box;
-	sky_node->material = sky_material;
-	/*
-	// Q4 - REFLECTIVE MATERIAL : Mirror
-	
-	mirror_texture->cubemapFromImages("data/environments/snow");
-	mirror_material->texture = mirror_texture;
-
-	main_node->mesh = sphere;
-	main_node->material = mirror_material;
-	*/
-
-	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 }
 
@@ -193,6 +165,21 @@ void Application::update(double seconds_elapsed)
 void Application::renderInMenu()
 {
 	// Show and edit your global variables on the fly here
+	if (ImGui::Button("Switch to Phong w/ Texture"))
+	{
+		main_node->mesh = sphere;
+		main_node->material = phong_material;
+	}
+	if (ImGui::Button("Switch to Mirror"))
+	{
+		main_node->mesh = sphere;
+		main_node->material = mirror_material;
+	}
+	if (ImGui::Button("Switch to Mirror (bean)"))
+	{
+		main_node->mesh = bean;
+		main_node->material = mirror_material;
+	}
 }
 
 //Keyboard event handler (sync input)
