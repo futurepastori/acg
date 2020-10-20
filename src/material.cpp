@@ -58,7 +58,7 @@ PhongMaterial::PhongMaterial()
 {
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 	light = new Light();
-	shader = Shader::Get("data/shaders/phong_reflective.vs", "data/shaders/phong_reflective.fs");
+	shader = Shader::Get("data/shaders/phong.vs", "data/shaders/phong.fs");
 
 	ambient.set(0.35, 0.36, 0.35);
 	diffuse.set(0.80, 0.80, 0.80);
@@ -145,6 +145,29 @@ void SkyboxMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 		shader->disable();
 	}
 	glEnable(GL_DEPTH_TEST);
+}
+
+MirrorMaterial::MirrorMaterial()
+{
+	shader = Shader::Get("data/shaders/reflective.vs", "data/shaders/reflective.fs");
+}
+
+MirrorMaterial::~MirrorMaterial()
+{
+
+}
+
+void MirrorMaterial::setUniforms(Camera* camera, Matrix44 model)
+{
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	shader->setUniform("u_model", model);
+
+	shader->setUniform("u_color", color);
+
+	if (texture)
+		shader->setUniform("u_texture", texture);
+
 }
 
 WireframeMaterial::WireframeMaterial()
