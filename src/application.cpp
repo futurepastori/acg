@@ -67,10 +67,17 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	Texture* main_texture = new Texture();
 	Texture* mirror_texture = new Texture();
 
-	// Q1 com estava
+	// Q0 - BEGINNING - just colour
 	main_node->mesh = sphere;
 	main_node->material = material;
-
+	
+	// Q1 - TEXTURE without illumination
+	main_texture = Texture::Get("data/textures/roughness.png");
+	material->texture = main_texture;
+	material->shader = Shader::Get("data/shaders/basic.vs", "data/shaders/texture.fs");
+	main_node->mesh = sphere;
+	main_node->material = material;
+	
 	
 	// Q2 - PHONG MATERIAL : Set Phong lighting to an object
 	
@@ -80,10 +87,8 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	main_node->mesh = sphere;
 	main_node->material = phong_material;
 	
-	/*
-
-	// Q3 - SKYBOX : Render a skybox in the place of background
 	
+	// Q3 - SKYBOX : Render a skybox in the place of background
 	//Set a cubemap texture to a skybox
 
 	sky_texture->cubemapFromImages("data/environments/snow");
@@ -91,7 +96,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 
 	sky_node->mesh = box;
 	sky_node->material = sky_material;
-
+	/*
 	// Q4 - REFLECTIVE MATERIAL : Mirror
 	
 	mirror_texture->cubemapFromImages("data/environments/snow");
