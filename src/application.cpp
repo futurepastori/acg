@@ -57,6 +57,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	Mesh* sphere = Mesh::Get("data/meshes/sphere.obj");
 
 	// Materials
+	StandardMaterial* material = new StandardMaterial();
 	SkyboxMaterial* sky_material = new SkyboxMaterial();
 	PhongMaterial* phong_material = new PhongMaterial();
 	MirrorMaterial* mirror_material = new MirrorMaterial();
@@ -66,6 +67,11 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	Texture* main_texture = new Texture();
 	Texture* mirror_texture = new Texture();
 
+	// Q1 com estava
+	main_node->mesh = sphere;
+	main_node->material = material;
+
+	
 	// Q2 - PHONG MATERIAL : Set Phong lighting to an object
 	
 	main_texture = Texture::Get("data/textures/roughness.png");
@@ -74,6 +80,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	main_node->mesh = sphere;
 	main_node->material = phong_material;
 	
+	/*
 
 	// Q3 - SKYBOX : Render a skybox in the place of background
 	
@@ -92,6 +99,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 
 	main_node->mesh = sphere;
 	main_node->material = mirror_material;
+	*/
 
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse

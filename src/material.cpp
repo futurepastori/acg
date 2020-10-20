@@ -98,6 +98,15 @@ void PhongMaterial::setUniforms(Camera* camera, Matrix44 model)
 	}
 }
 
+void PhongMaterial::renderInMenu()
+{
+	ImGui::Text("PHONG PARAMETERS");
+	ImGui::SliderFloat("Shininess", (float*)&shininess, 0.0f, 50.0f);
+	ImGui::ColorEdit3("Ambient reflection", (float*)&ambient);
+	ImGui::ColorEdit3("Diffuse reflection", (float*)&diffuse);
+	ImGui::ColorEdit3("Specular reflection", (float*)&specular);
+}
+
 SkyboxMaterial::SkyboxMaterial()
 {
 	shader = Shader::Get("data/shaders/skybox.vs", "data/shaders/skybox.fs");

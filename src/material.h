@@ -45,6 +45,7 @@ public:
 	~PhongMaterial();
 
 	void setUniforms(Camera* camera, Matrix44 model);
+	void renderInMenu();
 };
 
 class SkyboxMaterial : public StandardMaterial {
