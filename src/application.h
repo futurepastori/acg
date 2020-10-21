@@ -39,12 +39,14 @@ public:
 
 	Mesh* sphere;
 	Mesh* bean;
+	bool try_bean;
 
 	Texture* main_texture;
 
 	SkyboxMaterial* sky_material;
 	PhongMaterial* phong_material;
 	MirrorMaterial* mirror_material;
+	PhongMirrorMaterial* phong_mirror_material;
 
 
 	Application( int window_width, int window_height, SDL_Window* window );

@@ -156,7 +156,7 @@ void SkyboxMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 	glEnable(GL_DEPTH_TEST);
 }
 
-MirrorMaterial::MirrorMaterial()
+PhongMirrorMaterial::PhongMirrorMaterial()
 {
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 	light = new Light();
@@ -169,12 +169,12 @@ MirrorMaterial::MirrorMaterial()
 	shininess = 35.0;
 }
 
-MirrorMaterial::~MirrorMaterial()
+PhongMirrorMaterial::~PhongMirrorMaterial()
 {
 
 }
 
-void MirrorMaterial::setUniforms(Camera* camera, Matrix44 model)
+void PhongMirrorMaterial::setUniforms(Camera* camera, Matrix44 model)
 {
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	shader->setUniform("u_camera_position", camera->eye);
@@ -199,6 +199,28 @@ void MirrorMaterial::setUniforms(Camera* camera, Matrix44 model)
 		shader->setFloat("alpha", shininess);
 	}
 
+}
+
+MirrorMaterial::MirrorMaterial()
+{
+	shader = Shader::Get("data/shaders/reflective.vs", "data/shaders/reflective.fs");
+}
+
+MirrorMaterial::~MirrorMaterial()
+{
+
+}
+
+void MirrorMaterial::setUniforms(Camera* camera, Matrix44 model)
+{
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	shader->setUniform("u_model", model);
+
+	shader->setUniform("u_color", color);
+
+	if (texture)
+		shader->setUniform("u_texture", texture);
 }
 
 WireframeMaterial::WireframeMaterial()

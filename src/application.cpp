@@ -61,6 +61,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	sky_material = new SkyboxMaterial();
 	phong_material = new PhongMaterial();
 	mirror_material = new MirrorMaterial();
+	phong_mirror_material = new PhongMirrorMaterial();
 	
 	// Textures
 	Texture* sky_texture = new Texture();
@@ -72,10 +73,12 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 
 	sky_material->texture = sky_texture;
 	mirror_material->texture = mirror_texture;
+	phong_mirror_material->texture = mirror_texture;
 
 	sky_node->mesh = box;
 	sky_node->material = sky_material;	
 
+	try_bean = false;
 	main_node->mesh = sphere;
 	main_node->material = phong_material;
 
@@ -93,6 +96,13 @@ void Application::render(void)
 
 	//set the camera as default
 	camera->enable();
+
+	if (try_bean) {
+		main_node->mesh = bean;
+	}
+	else {
+		main_node->mesh = sphere;
+	}
 
 	for (int i = 0; i < node_list.size(); i++) {
 		node_list[i]->render(camera);
@@ -164,22 +174,23 @@ void Application::update(double seconds_elapsed)
 
 void Application::renderInMenu()
 {
+
 	// Show and edit your global variables on the fly here
 	if (ImGui::Button("Switch to Phong w/ Texture"))
 	{
-		main_node->mesh = sphere;
 		main_node->material = phong_material;
 	}
 	if (ImGui::Button("Switch to Mirror"))
 	{
-		main_node->mesh = sphere;
 		main_node->material = mirror_material;
 	}
-	if (ImGui::Button("Switch to Mirror (bean)"))
+	if (ImGui::Button("Switch to Phong Mirror"))
 	{
-		main_node->mesh = bean;
-		main_node->material = mirror_material;
+		main_node->material = phong_mirror_material;
 	}
+	ImGui::Text("WANT TO TRY ANOTHER OBJECT?");
+	ImGui::Checkbox("Try with a bean", &try_bean);
+	
 }
 
 //Keyboard event handler (sync input)

@@ -58,7 +58,7 @@ public:
 	void setUniforms(Camera* camera);
 };
 
-class MirrorMaterial : public StandardMaterial {
+class PhongMirrorMaterial : public StandardMaterial {
 public:
 	Light* light = NULL;
 
@@ -68,6 +68,15 @@ public:
 
 	float shininess;
 
+	PhongMirrorMaterial();
+	~PhongMirrorMaterial();
+
+	void setUniforms(Camera* camera, Matrix44 model);
+};
+
+class MirrorMaterial : public StandardMaterial {
+public:
+	
 	MirrorMaterial();
 	~MirrorMaterial();
 
