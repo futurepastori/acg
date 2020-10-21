@@ -162,7 +162,7 @@ PhongMirrorMaterial::PhongMirrorMaterial()
 	light = new Light();
 	shader = Shader::Get("data/shaders/phong_reflective.vs", "data/shaders/phong_reflective.fs");
 
-	ambient.set(0.65, 0.66, 0.65);
+	ambient.set(0.85, 0.86, 0.85);
 	diffuse.set(0.80, 0.80, 0.80);
 	specular.set(0.95, 0.96, 0.95);
 

@@ -3,7 +3,7 @@ attribute vec3 a_normal;
 attribute vec2 a_uv;
 attribute vec4 a_color;
 
-uniform vec3 u_camera_pos;
+uniform vec3 u_camera_position;
 
 uniform mat4 u_model;
 uniform mat4 u_viewprojection;
@@ -23,7 +23,7 @@ void main()
 	//calcule the normal in camera space (the NormalMatrix is like ViewMatrix but without traslation)
 	v_normal = (u_model * vec4( a_normal, 0.0) ).xyz;
 	v_normal_refl = mat3(transpose(inverse(u_model))) * a_normal;
-
+	
 	v_world_normal = (u_model * vec4( gl_Normal.xyz, 0.0)).xyz;
 	
 	//calcule the vertex in object space

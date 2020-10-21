@@ -41,8 +41,8 @@ void main()
 
 	vec3 color = ambient_k * ambient_i + diffuse_k * diffuse_i * NdotL + specular_k * specular_i * RdotL;
 	
-	vec3 ray_in = normalize(u_camera_position - v_world_position);
-    vec3 ray_out = reflect(-ray_in, normalize(-v_normal));
+	vec3 ray_in = normalize(v_position - u_camera_position);
+    vec3 ray_out = reflect(ray_in, normalize(v_normal_refl));
 
 	//set the ouput color por the pixel
 	gl_FragColor = vec4( color, 1.0 ) * vec4(texture(u_texture, ray_out).xyz, 1.0);

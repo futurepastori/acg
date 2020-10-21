@@ -2,9 +2,9 @@
 
 Light::Light()
 {
-	position.set(30, 30, 0);
+	position.set(13, 13, 0);
 
-	diffuse.set(0.6f, 0.6f, 0.6f);
-	specular.set(0.3f, 0.3f, 0.3f);
-	ambient.set(0.2f, 0.2f, 0.2f);
+	diffuse.set(0.7f, 0.7f, 0.7f);
+	specular.set(1.0f, 1.0f, 1.0f);
+	ambient.set(0.4f, 0.4f, 0.4f);
 }
