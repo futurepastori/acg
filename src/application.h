@@ -47,6 +47,7 @@ public:
 	PhongMaterial* phong_material;
 	MirrorMaterial* mirror_material;
 	PhongMirrorMaterial* phong_mirror_material;
+	PBRMaterial* pbr_material;
 
 
 	Application( int window_width, int window_height, SDL_Window* window );

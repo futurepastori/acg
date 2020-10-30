@@ -30,6 +30,19 @@ public:
 	void renderInMenu();
 };
 
+class PBRMaterial : public StandardMaterial {
+public:
+
+	Light* light = NULL;
+	vec3 diffuseColor;
+
+	PBRMaterial();
+	~PBRMaterial();
+
+	void setUniforms(Camera* camera, Matrix44 model);
+	void renderInMenu();
+};
+
 class PhongMaterial : public StandardMaterial {
 public:
 
