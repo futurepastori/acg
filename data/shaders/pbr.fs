@@ -20,6 +20,8 @@ uniform vec4 u_color;
 //uniform samplerCube u_texture_prem_3;
 //uniform samplerCube u_texture_prem_4;
 
+// comentari de mostra
+
 uniform vec3 pos_light;
 
 struct PBRMat
@@ -85,7 +87,8 @@ float G1(float dot, float k)
 	return dot/(dot * (1 - k) + k)
 }
 
-float geometry_function(PBRMat material){
+float geometry_function(PBRMat material)
+{
 
 	// Compute Geometry Function G
 	float k = pow((material.roughness + 1), 2)/8;
@@ -134,19 +137,19 @@ PBRMat computeFinalColor(PBRMat material)
 void main()
 {
 	// Define PBR material
-	PBRMat pbr_material;
+	PBRMat pbr_material();
 
 	// Compute light equation vectors
 	pbr_material = lightEquationVectors(pbr_material);
 	
 	// Assign material values
-	pbr_material = assignMaterialVal(pbr_material);
+	//pbr_material = assignMaterialVal(pbr_material);
 
 	// Direct lighting
-	pbr_material = directLighting(pbr_material);
+	//pbr_material = directLighting(pbr_material);
 
 	// Compute final color
-	pbr_material = computeFinalColor(pbr_material);
+	//pbr_material = computeFinalColor(pbr_material);
 
 	vec4 color = vec4(PBR_material.final_color, 1.0);
 
