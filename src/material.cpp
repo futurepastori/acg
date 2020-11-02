@@ -59,9 +59,8 @@ PBRMaterial::PBRMaterial()
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 	
 	light = new Light();
-	diffuseColor = vec3(1.0f, 0.3f, 0.3f);
 
-	shader = Shader::Get("data/shaders/pbr.vs", "data/shaders/pbr.fs");
+	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/pbr.fs");
 }
 
 PBRMaterial::~PBRMaterial()
@@ -75,6 +74,8 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	shader->setUniform("u_camera_position", camera->eye);
 	shader->setUniform("u_model", model);
+	shader->setUniform("u_color", color);
+	shader->setUniform("pos_light", pos_light);
 
 	shader->setUniform("u_diffuse_color", diffuseColor);
 	shader->setUniform("u_light_position", light->position);

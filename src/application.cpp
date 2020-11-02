@@ -62,7 +62,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	phong_material = new PhongMaterial();
 	mirror_material = new MirrorMaterial();
 	phong_mirror_material = new PhongMirrorMaterial();*/
-	pbr_material = new PBRMaterial();
+
 	
 	// Textures
 	//Texture* sky_texture = new Texture();
@@ -79,9 +79,16 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	//sky_node->mesh = box;
 	//sky_node->material = sky_material;	
 
-	try_bean = false;
-	main_node->mesh = sphere;
+
+	/********* PBR ********/
+	SceneNode * node_PBR = new SceneNode("PBR");
+	node_list.push_back(node_PBR);
+	node_PBR->mesh = sphere;
+	pbr_material = new PBRMaterial();
 	main_node->material = pbr_material;
+
+	try_bean = false;
+
 
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 }
