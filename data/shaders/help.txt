@@ -1,3 +1,24 @@
+#define PI 3.14159265359
+#define RECIPROCAL_PI 0.3183098861837697
+
+#define GAMMA 2.2
+#define INV_GAMMA 0.45
+
+// Levels of the HDR Environment to simulate roughness material
+// (IBL)
+uniform samplerCube u_texture_prem_0;
+uniform samplerCube u_texture_prem_1;
+uniform samplerCube u_texture_prem_2;
+uniform samplerCube u_texture_prem_3;
+uniform samplerCube u_texture_prem_4;
+
+struct PBRMat
+{
+	// prop 1
+	// prop 2
+	// ...
+	// prop N
+};
 
 vec3 getReflectionColor(vec3 r, float roughness)
 {
@@ -13,12 +34,12 @@ vec3 getReflectionColor(vec3 r, float roughness)
 	else color = textureCube(u_texture_prem_4, r);
 
 	// Gamma correction
-	color = pow(color, vec4(1.0/2.2));
+	color = pow(color, vec4(INV_GAMMA));
 
 	return color.rgb;
 }
 
-//Javi Agenjo <3 Snipet for Bump Mapping
+//Javi Agenjo Snipet for Bump Mapping
 mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv){
 	// get edge vectors of the pixel triangle
 	vec3 dp1 = dFdx( p );
