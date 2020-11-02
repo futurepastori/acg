@@ -48,7 +48,7 @@ vec3 toneMap(vec3 color)
     return color / (color + vec3(1.0));
 }
 
-PBRMat lightEquationVectors(PBRMat material)
+void lightEquationVectors(out PBRMat material)
 {
 	// N : normal vector at each point
 	material.N = normalize(v_normal);// TODO: this has to be perturbnormal (microfacets)
@@ -57,19 +57,17 @@ PBRMat lightEquationVectors(PBRMat material)
 	// V: vector towards the eye 
 	material.V = normalize(u_camera_position - v_world_position);
 	// R: reflected L vector
-	material.R = reflect(V, N);
+	material.R = reflect(material.V, material.N);
 	// H: half vector between V and L
-	material.H = V + L;
-
-	return material;
+	material.H = material.V + material.L;
 }
 
 PBRMat assignMaterialVal(PBRMat material){
 
 	material.roughness = 0.5;
-	material.c_diff = vec3(0.5, 0.5, 1);
+	material.c_diff = vec3(0.5, 0.5, 1.0);
 	//Compute F0 specular
-	material.f0_specular = vec3(0.5, 0.5, 1);
+	material.f0_specular = vec3(0.5, 0.5, 1.0);
 	return material;
 }
 
@@ -78,13 +76,13 @@ PBRMat assignMaterialVal(PBRMat material){
 vec3 fresnel(PBRMat material)
 {
 	// Compute Fresnet Reflective F
-	float l_dot_n = clamp(dot(material.L, material.N), 0, 1);
+	float l_dot_n = clamp(dot(material.L, material.N), 0.01, 0.99);
 	return material.f0_specular + (1 - material.f0_specular) * pow((1 - l_dot_n),5);
 }
 
-float G1(float dot, float k)
+float G1(float dot_vec, float k)
 {
-	return dot/(dot * (1 - k) + k)
+	return dot_vec/(dot_vec * (1 - k) + k);
 }
 
 float geometry_function(PBRMat material)
@@ -137,21 +135,21 @@ PBRMat computeFinalColor(PBRMat material)
 void main()
 {
 	// Define PBR material
-	PBRMat pbr_material();
+	PBRMat pbr_material;
 
 	// Compute light equation vectors
-	pbr_material = lightEquationVectors(pbr_material);
+	lightEquationVectors(pbr_material);
 	
 	// Assign material values
-	//pbr_material = assignMaterialVal(pbr_material);
+	pbr_material = assignMaterialVal(pbr_material);
 
 	// Direct lighting
-	//pbr_material = directLighting(pbr_material);
+	pbr_material = directLighting(pbr_material);
 
 	// Compute final color
-	//pbr_material = computeFinalColor(pbr_material);
+	pbr_material = computeFinalColor(pbr_material);
 
-	vec4 color = vec4(PBR_material.final_color, 1.0);
+	vec4 color = vec4(pbr_material.final_color, 1.0);
 
 	gl_FragColor = color;
 }
