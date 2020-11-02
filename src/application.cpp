@@ -85,10 +85,9 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	node_list.push_back(node_PBR);
 	node_PBR->mesh = sphere;
 	pbr_material = new PBRMaterial();
-	main_node->material = pbr_material;
+	node_PBR->material = pbr_material;
 
 	try_bean = false;
-
 
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 }
