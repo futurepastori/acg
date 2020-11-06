@@ -1,6 +1,9 @@
 #define PI 3.14159265359
 #define RECIPROCAL_PI 0.3183098861837697
 
+#define CLAMP_MAX 0.99
+#define CLAMP_MIN 0.01
+
 #define GAMMA 2.2
 #define INV_GAMMA 0.45
 
@@ -76,8 +79,8 @@ PBRMat assignMaterialVal(PBRMat material){
 vec3 fresnel(PBRMat material)
 {
 	// Compute Fresnet Reflective F
-	float l_dot_n = clamp(dot(material.L, material.N), 0.01, 0.99);
-	return material.f0_specular + (1 - material.f0_specular) * pow((1 - l_dot_n),5);
+	float l_dot_h = clamp(dot(material.L, material.H), CLAMP_MIN, CLAMP_MAX);
+	return material.f0_specular + (1.0 - material.f0_specular) * pow((1.0 - l_dot_h),5.0);
 }
 
 float G1(float dot_vec, float k)
@@ -89,27 +92,33 @@ float geometry_function(PBRMat material)
 {
 
 	// Compute Geometry Function G
-	float k = pow((material.roughness + 1), 2)/8;
-	float n_dot_l = clamp(dot(material.N, material.L), 0, 1);
-	float n_dot_v = clamp(dot(material.N, material.V), 0, 1);
+	float k = pow((material.roughness + 1.0), 2.0) / 8.0;
 
-	return G1(n_dot_l,k) * G1(n_dot_v,k);
+	float n_dot_l = clamp(dot(material.N, material.L), CLAMP_MIN, CLAMP_MAX);
+	float n_dot_v = clamp(dot(material.N, material.V), CLAMP_MIN, CLAMP_MAX);
+
+	float G1 = n_dot_l/(n_dot_l * (1-k)+k);
+	float G2 = n_dot_v/(n_dot_v * (1-k)+k);
+
+	return G1*G2;
 }
 
 float dist_function(PBRMat material){
 
-	// Compute Distribution Function D
-	float alpha = pow(material.roughness, 2);
-	float alpha_pow2 = pow(alpha, 2);
+	// Compute Distribution Function 
 
-	float n_dot_m = clamp(dot(material.N, material.H), 0, 1);
-	return alpha_pow2/(PI * (pow(n_dot_m,2) * (alpha_pow2 - 1) + 1), 2);
+	float alpha_pow2 = pow(material.roughness, 2.0);
+	float n_dot_h = clamp(dot(material.N, material.H), CLAMP_MIN, CLAMP_MAX);
+	float density = pow(pow(n_dot_h, 2.0)*(alpha_pow2-1.0)+1, 2.0);
+
+	return alpha_pow2 / density;
 }
 
 PBRMat directLighting(PBRMat material)
 {
-	float n_dot_l = clamp(dot(material.N, material.L), 0, 1);
-	float n_dot_v = clamp(dot(material.N, material.V), 0, 1);
+
+	float n_dot_l = clamp(dot(material.N, material.L), CLAMP_MIN, CLAMP_MAX);
+	float n_dot_v = clamp(dot(material.N, material.V), CLAMP_MIN, CLAMP_MAX);
 
 	//Diffuse term (Lambert)
 	material.f_diffuse = material.c_diff / PI;
@@ -121,7 +130,7 @@ PBRMat directLighting(PBRMat material)
 	material.f_specular = (F * G * D) / (4 * n_dot_l * n_dot_v);
 
 	//PL color:
-	material.bsdf = material.f_diffuse + material.f_specular;
+	material.bsdf = (material.f_diffuse + material.f_specular)*n_dot_l;
 
 	return material;
 }
