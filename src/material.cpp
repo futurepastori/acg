@@ -169,7 +169,7 @@ SkyboxMaterial::SkyboxMaterial()
 
 SkyboxMaterial::~SkyboxMaterial()
 {
-
+	texture = new Texture();
 }
 
 void SkyboxMaterial::setUniforms(Camera* camera)

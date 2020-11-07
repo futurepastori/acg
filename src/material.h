@@ -72,7 +72,7 @@ public:
 
 class SkyboxMaterial : public StandardMaterial {
 public:
-	
+
 	SkyboxMaterial();
 	~SkyboxMaterial();
 

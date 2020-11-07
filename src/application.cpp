@@ -46,30 +46,26 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	camera->setPerspective(45.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
 	// Scene Nodes
-	//SceneNode* sky_node = new SceneNode("Skybox");
+	SceneNode* sky_node = new SceneNode("Skybox");
 	//main_node = new SceneNode("Main node");
 
-	//node_list.push_back(sky_node);
+	node_list.push_back(sky_node);
 	//node_list.push_back(main_node);
 
 	// Meshes
-	//Mesh* box = Mesh::Get("data/meshes/box.ASE");
-	sphere = Mesh::Get("data/meshes/sphere.obj");
-	bean = Mesh::Get("data/meshes/bean.obj");
+	Mesh* box = Mesh::Get("data/meshes/box.ASE");
+	//sphere = Mesh::Get("data/meshes/sphere.obj");
+	//bean = Mesh::Get("data/meshes/bean.obj");
 	helmet = Mesh::Get("data/models/helmet/helmet.obj");
 
 	// Materials
-	/*sky_material = new SkyboxMaterial();
-	phong_material = new PhongMaterial();
+	//sky_material = new SkyboxMaterial();
+	/*phong_material = new PhongMaterial();
 	mirror_material = new MirrorMaterial();
 	phong_mirror_material = new PhongMirrorMaterial();*/
 
-	
-	// Textures
-	//Texture* sky_texture = new Texture();
 	//Texture* mirror_texture = new Texture();
 
-	//sky_texture->cubemapFromImages("data/environments/snow");
 	//main_texture = Texture::Get("data/textures/roughness.png");
 	//mirror_texture->cubemapFromImages("data/environments/snow");
 
@@ -79,6 +75,21 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 
 	//sky_node->mesh = box;
 	//sky_node->material = sky_material;
+
+	/********* SKY NODE *******/
+	SceneNode* sky = new SceneNode("sky");
+	sky->mesh = new Mesh();
+	sky->mesh = box;
+
+	SkyboxMaterial* stdmat = new SkyboxMaterial();
+	Texture* stdtex = new Texture();
+
+	HDRE* hdre = HDRE::Get("data/environments/panorama.hdre");
+	stdtex->cubemapFromHDRE(hdre, 0U);
+
+	stdmat->texture = stdtex;
+	sky->material = stdmat;
+	node_list.push_back(sky);
 
 	/********* PBR ********/
 	SceneNode* node_PBR = new SceneNode("PBR");
