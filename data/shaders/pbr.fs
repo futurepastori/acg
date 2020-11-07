@@ -15,10 +15,10 @@ uniform float u_roughness_factor;
 uniform float u_metalness_factor;
 uniform vec3 u_light_position;
 
-uniform sampler2D u_roughness_map;
-uniform sampler2D u_metalness_map;
-uniform sampler2D u_normal_map;
 uniform sampler2D u_albedo_map;
+uniform sampler2D u_normal_map;
+uniform sampler2D u_metalness_map;
+uniform sampler2D u_roughness_map;
 
 struct PBRMat
 {
@@ -173,6 +173,11 @@ void setDirectLighting(out PBRMat material, out PBRVec vectors)
 	material.bsdf = (material.f_diffuse + material.f_specular)*vectors.n_dot_l;
 }
 
+void setIndirectLighting(out PBRMat material, out PBRVec vectors)
+{
+
+}
+
 void main()
 {
 	PBRMat pbr_material;
@@ -182,6 +187,7 @@ void main()
 	initMaterialProps(pbr_material);
 
 	setDirectLighting(pbr_material, pbr_vectors);
+	setIndirectLighting(pbr_material, pbr_vectors);
 
 	gl_FragColor = vec4(pbr_material.bsdf, 1.0);
 }

@@ -59,7 +59,7 @@ PBRMaterial::PBRMaterial()
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 
 	light = new Light();
-	roughness_factor = 0.4;
+	roughness_factor = 0.25;
 	metalness_factor = 0.15;
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/pbr.fs");
 }
@@ -83,10 +83,10 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_roughness_factor", roughness_factor);
 	shader->setUniform("u_metalness_factor", metalness_factor);
 
-	shader->setUniform("u_roughness_map", roughness_map);
-	shader->setUniform("u_metalness_map", metalness_map);
-	shader->setUniform("u_normal_map", normal_map);
-	shader->setUniform("u_albedo_map", albedo_map);
+	shader->setUniform("u_albedo_map", albedo_map, 0);
+	shader->setUniform("u_normal_map", normal_map, 1);
+	shader->setUniform("u_metalness_map", metalness_map, 2);
+	shader->setUniform("u_roughness_map", roughness_map, 3);
 }
 
 void PBRMaterial::setTextures()
