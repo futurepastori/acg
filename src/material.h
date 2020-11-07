@@ -34,12 +34,21 @@ class PBRMaterial : public StandardMaterial {
 public:
 
 	Light* light = NULL;
-	vec3 diffuseColor;
 
 	PBRMaterial();
 	~PBRMaterial();
 
+	// maps
+	float roughness_factor;
+	Texture* roughness_map;
+
+	float metalness_factor;
+	Texture* metalness_map;
+
+	Texture* albedo_map;
+
 	void setUniforms(Camera* camera, Matrix44 model);
+	void setTextures();
 	void renderInMenu();
 };
 

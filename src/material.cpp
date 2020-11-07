@@ -57,9 +57,10 @@ void StandardMaterial::renderInMenu()
 PBRMaterial::PBRMaterial()
 {
 	color = vec4(1.f, 1.f, 1.f, 1.f);
-	
-	light = new Light();
 
+	light = new Light();
+	roughness_factor = 1.0;
+	metalness_factor = 1.0;
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/pbr.fs");
 }
 
@@ -73,13 +74,30 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 	//upload node uniforms
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	shader->setUniform("u_camera_position", camera->eye);
+
 	shader->setUniform("u_model", model);
 	shader->setUniform("u_color", color);
-	shader->setUniform("pos_light", light->position);
 
-	shader->setUniform("u_diffuse_color", diffuseColor);
 	shader->setUniform("u_light_position", light->position);
 
+	shader->setUniform("u_roughness", roughness_factor);
+	shader->setUniform("u_metalness", metalness_factor);
+
+	shader->setUniform("u_roughness_map", roughness_map);
+	shader->setUniform("u_metalness_map", metalness_map);
+	shader->setUniform("u_albedo_map", albedo_map);
+}
+
+void PBRMaterial::setTextures()
+{
+	roughness_map = new Texture();
+	roughness_map->load("data/textures/roughness.png");
+
+	metalness_map = new Texture();
+	metalness_map->load("data/textures/metalness.png");
+
+	albedo_map = new Texture();
+	albedo_map->load("data/textures/color.png");
 }
 
 void PBRMaterial::renderInMenu()

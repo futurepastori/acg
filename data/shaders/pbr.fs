@@ -10,17 +10,26 @@ varying vec2 v_uv;
 
 uniform vec3 u_camera_position;
 uniform vec4 u_color;
-uniform vec3 pos_light;
 
+uniform float u_roughness;
+uniform float u_metalness;
+uniform vec3 u_light_position;
+
+uniform sampler2D u_roughness_map;
+uniform sampler2D u_metalness_map;
+uniform sampler2D u_albedo_map;
 
 struct PBRMat
 {
 	vec3 c_diffuse;
 	vec3 f0_specular;
-	float roughness;
 
 	vec3 f_diffuse;
 	vec3 f_specular;
+
+	float roughness;
+	float metalness;
+	vec3 albedo; // Base color
 
 	vec3 bsdf;
 	vec3 final_color;
@@ -45,7 +54,7 @@ void initMaterialVectors(out PBRVec vectors)
 	// N : normal vector at each point
 	vectors.N = normalize(v_normal); // TODO: this has to be perturbnormal (microfacets)
 	// L : vector towards the light
-	vectors.L = normalize(pos_light - v_world_position);
+	vectors.L = normalize(u_light_position - v_world_position);
 	// V: vector towards the eye 
 	vectors.V = normalize(u_camera_position - v_world_position);
 	// R: reflected L vector
@@ -62,12 +71,24 @@ void initMaterialVectors(out PBRVec vectors)
 
 void initMaterialProps(out PBRMat material)
 {
+	
 	// roguhness: facet deviation at the surface of the material
-	material.roughness = 0.85;
+	vec4 roughness_texture = texture2D(u_roughness_map, v_uv);
+	material.roughness = roughness_texture.x * u_roughness;
+
+	// Compute metalness
+	vec4 metalness_texture = texture2D(u_metalness_map, v_uv);
+	material.metalness = metalness_texture.x * u_metalness;
+
+	// Compute albedo (base color)
+	vec4 albedo_texture = texture2D(u_albedo_map, v_uv);
+	material.albedo = albedo_texture.xyz;
+
 	// c_diffuse: base RGB diffuse color for Lambertian model
-	material.c_diffuse = vec3(0.35, 0.35, 0.55);
+	material.c_diffuse = (material.metalness * vec3(0.0)) + ((1 - material.metalness) * material.albedo);
+
 	// f0_specular: computed RGB color for the specular reflection
-	material.f0_specular = vec3(0.7, 0.8, 0.95);	// TODO: this is still hardcoded
+	material.f0_specular = (material.metalness * material.albedo) + ((1 - material.metalness) * vec3(0.04));
 }
 
 vec3 getFresnel(PBRMat material, PBRVec vectors)

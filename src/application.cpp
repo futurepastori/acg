@@ -77,14 +77,14 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	//phong_mirror_material->texture = mirror_texture;
 
 	//sky_node->mesh = box;
-	//sky_node->material = sky_material;	
-
+	//sky_node->material = sky_material;
 
 	/********* PBR ********/
-	SceneNode * node_PBR = new SceneNode("PBR");
+	SceneNode* node_PBR = new SceneNode("PBR");
 	node_list.push_back(node_PBR);
 	node_PBR->mesh = sphere;
 	pbr_material = new PBRMaterial();
+	pbr_material->setTextures();
 	node_PBR->material = pbr_material;
 
 	try_bean = false;
