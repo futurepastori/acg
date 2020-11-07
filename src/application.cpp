@@ -81,14 +81,14 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	sky->mesh = new Mesh();
 	sky->mesh = box;
 
-	SkyboxMaterial* stdmat = new SkyboxMaterial();
-	Texture* stdtex = new Texture();
+	SkyboxMaterial* sky_material = new SkyboxMaterial();
+	Texture* sky_texture = new Texture();
 
 	HDRE* hdre = HDRE::Get("data/environments/panorama.hdre");
-	stdtex->cubemapFromHDRE(hdre, 0U);
+	sky_texture->cubemapFromHDRE(hdre, 0U);
 
-	stdmat->texture = stdtex;
-	sky->material = stdmat;
+	sky_material->texture = sky_texture;
+	sky->material = sky_material;
 	node_list.push_back(sky);
 
 	/********* PBR ********/

@@ -1,3 +1,5 @@
 .DS_Store
 .vs
 visualstudio15/VS2015/Debug
+framework_debug.exe
+framework_debug.idb

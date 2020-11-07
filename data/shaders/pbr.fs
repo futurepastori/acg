@@ -19,6 +19,15 @@ uniform sampler2D u_albedo_map;
 uniform sampler2D u_normal_map;
 uniform sampler2D u_metalness_map;
 uniform sampler2D u_roughness_map;
+uniform sampler2D u_brdf_lut;
+
+// IBL: HDR levels to simulate roughness
+uniform samplerCube u_texture;		 	// Original 
+uniform samplerCube u_texture_prem_0; 	// Level 0
+uniform samplerCube u_texture_prem_1; 	// ..
+uniform samplerCube u_texture_prem_2;	// ..
+uniform samplerCube u_texture_prem_3;	// ..
+uniform samplerCube u_texture_prem_4; 	// Level 5: Less reflective
 
 struct PBRMat
 {
@@ -32,7 +41,6 @@ struct PBRMat
 	float metalness;
 	vec3 albedo; // Base color
 
-	vec3 bsdf;
 	vec3 final_color;
 };
 
@@ -170,12 +178,46 @@ void setDirectLighting(out PBRMat material, out PBRVec vectors)
 	// f_specular: specular color, f_facet refelction equation
 	material.f_specular = (F*G*D) / (4*vectors.n_dot_l*vectors.n_dot_v);
 	// normalized BSDF lighting combining diffuse and specular lighting
-	material.bsdf = (material.f_diffuse + material.f_specular)*vectors.n_dot_l;
+	material.final_color = (material.f_diffuse + material.f_specular)*vectors.n_dot_l;
+}
+
+vec3 getReflectionColor(vec3 r, float roughness)
+{
+	float lod = roughness * 5.0;
+	vec4 color;
+
+	if(lod < 1.0) color = mix( textureCube(u_texture, r), textureCube(u_texture_prem_0, r), lod );
+	else if(lod < 2.0) color = mix( textureCube(u_texture_prem_0, r), textureCube(u_texture_prem_1, r), lod - 1.0 );
+	else if(lod < 3.0) color = mix( textureCube(u_texture_prem_1, r), textureCube(u_texture_prem_2, r), lod - 2.0 );
+	else if(lod < 4.0) color = mix( textureCube(u_texture_prem_2, r), textureCube(u_texture_prem_3, r), lod - 3.0 );
+	else if(lod < 5.0) color = mix( textureCube(u_texture_prem_3, r), textureCube(u_texture_prem_4, r), lod - 4.0 );
+	else color = textureCube(u_texture_prem_4, r);
+
+	return color.rgb;
+}
+
+vec4 getBRDFLUT(PBRMat material, PBRVec vectors)
+{
+	vec2 vector = vec2(material.roughness, vectors.n_dot_v);
+	return texture2D(u_brdf_lut, vector);
 }
 
 void setIndirectLighting(out PBRMat material, out PBRVec vectors)
 {
+	vec4 BRDF_LUT = getBRDFLUT(material, vectors);
 
+	// diffuse IBL as the interpolation between a sample of the reflected color
+	// from the environment and the underlying diffuse color (L2 slides, pp. 43)
+	vec3 diffuse_sample = getReflectionColor(vectors.N, material.roughness);
+	vec3 diffuse_color = material.c_diffuse;
+	vec3 diffuse_IBL = diffuse_sample * diffuse_color;
+
+	// specular IBL is taken from the sampling of the reflection value
+	// and the coordinates from a LUT (L2 slides, pp. 45)
+	vec3 specular_sample = getReflectionColor(vectors.R, material.roughness);
+	vec3 specular_BDRF = material.f0_specular * BRDF_LUT.x * BRDF_LUT.y;
+
+	material.final_color += diffuse_IBL*specular_BDRF;
 }
 
 void main()
@@ -189,5 +231,5 @@ void main()
 	setDirectLighting(pbr_material, pbr_vectors);
 	setIndirectLighting(pbr_material, pbr_vectors);
 
-	gl_FragColor = vec4(pbr_material.bsdf, 1.0);
+	gl_FragColor = vec4(pbr_material.final_color, 1.0);
 }

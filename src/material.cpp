@@ -59,8 +59,8 @@ PBRMaterial::PBRMaterial()
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 
 	light = new Light();
-	roughness_factor = 0.25;
-	metalness_factor = 0.15;
+	roughness_factor = 0.55;
+	metalness_factor = 0.50;
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/pbr.fs");
 }
 
@@ -87,6 +87,16 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_normal_map", normal_map, 1);
 	shader->setUniform("u_metalness_map", metalness_map, 2);
 	shader->setUniform("u_roughness_map", roughness_map, 3);
+
+	if (texture_hdre) {
+		shader->setUniform("u_texture", texture_hdre, 4);
+
+		shader->setUniform("u_texture_prem_0", texture_hdre_levels[0], 5);
+		shader->setUniform("u_texture_prem_1", texture_hdre_levels[1], 6);
+		shader->setUniform("u_texture_prem_2", texture_hdre_levels[2], 7);
+		shader->setUniform("u_texture_prem_3", texture_hdre_levels[3], 8);
+		shader->setUniform("u_texture_prem_4", texture_hdre_levels[4], 9);
+	}
 }
 
 void PBRMaterial::setTextures()
@@ -102,6 +112,24 @@ void PBRMaterial::setTextures()
 
 	albedo_map = new Texture();
 	albedo_map->load("data/models/helmet/albedo.png");
+
+	albedo_map = new Texture();
+	albedo_map->load("data/models/helmet/albedo.png");
+
+	brdf_lut = new Texture();
+	brdf_lut->load("data/textures/brdfLUT.png");
+
+	HDRE* hdre = HDRE::Get("data/environments/panorama.hdre");
+
+	texture_hdre = new Texture();
+	texture_hdre->cubemapFromHDRE(hdre, 0U);
+
+	for (unsigned int i = 0; i < 5; i++)
+	{
+		Texture* aux_texture = new Texture();
+		aux_texture->cubemapFromHDRE(hdre, i);
+		texture_hdre_levels[i] = aux_texture;
+	}
 }
 
 void PBRMaterial::renderInMenu()
