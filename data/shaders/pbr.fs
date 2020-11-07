@@ -1,11 +1,7 @@
-#define PI 3.14159265359
-#define RECIPROCAL_PI 0.3183098861837697
-
 #define CLAMP_MAX 0.99
 #define CLAMP_MIN 0.01
 
-#define GAMMA 2.2
-#define INV_GAMMA 0.45
+#define PI 3.14159265359
 
 varying vec3 v_position;
 varying vec3 v_world_position;
@@ -14,28 +10,12 @@ varying vec2 v_uv;
 
 uniform vec3 u_camera_position;
 uniform vec4 u_color;
-
-// Levels of the HDR Environment to simulate roughness material
-// (IBL)
-//uniform samplerCube u_texture_prem_0;
-//uniform samplerCube u_texture_prem_1;
-//uniform samplerCube u_texture_prem_2;
-//uniform samplerCube u_texture_prem_3;
-//uniform samplerCube u_texture_prem_4;
-
-// comentari de mostra
-
 uniform vec3 pos_light;
+
 
 struct PBRMat
 {
-	vec3 N;
-	vec3 L;
-	vec3 V;
-	vec3 R;
-	vec3 H;
-	
-	vec3 c_diff;
+	vec3 c_diffuse;
 	vec3 f0_specular;
 	float roughness;
 
@@ -46,119 +26,104 @@ struct PBRMat
 	vec3 final_color;
 };
 
-vec3 toneMap(vec3 color)
+struct PBRVec
 {
-    return color / (color + vec3(1.0));
-}
+	vec3 N;
+	vec3 L;
+	vec3 V;
+	vec3 R;
+	vec3 H;
 
-void lightEquationVectors(out PBRMat material)
+	float n_dot_l;
+	float n_dot_v;
+	float n_dot_h;
+	float l_dot_h;
+};
+
+void initMaterialVectors(out PBRVec vectors)
 {
 	// N : normal vector at each point
-	material.N = normalize(v_normal);// TODO: this has to be perturbnormal (microfacets)
+	vectors.N = normalize(v_normal); // TODO: this has to be perturbnormal (microfacets)
 	// L : vector towards the light
-	material.L = normalize(pos_light - v_world_position);
+	vectors.L = normalize(pos_light - v_world_position);
 	// V: vector towards the eye 
-	material.V = normalize(u_camera_position - v_world_position);
+	vectors.V = normalize(u_camera_position - v_world_position);
 	// R: reflected L vector
-	material.R = reflect(material.V, material.N);
+	vectors.R = normalize(reflect(vectors.V, vectors.N));
 	// H: half vector between V and L
-	material.H = material.V + material.L;
+	vectors.H = normalize(vectors.V + vectors.L);
+
+	// Some necessary dot products for the BDRF equations
+	vectors.n_dot_h = clamp(dot(vectors.N, vectors.H), CLAMP_MIN, CLAMP_MAX);
+	vectors.n_dot_l = clamp(dot(vectors.N, vectors.L), CLAMP_MIN, CLAMP_MAX);
+	vectors.n_dot_v = clamp(dot(vectors.N, vectors.V), CLAMP_MIN, CLAMP_MAX);
+	vectors.l_dot_h = clamp(dot(vectors.L, vectors.H), CLAMP_MIN, CLAMP_MAX);
 }
 
-PBRMat assignMaterialVal(PBRMat material){
-
-	material.roughness = 0.5;
-	material.c_diff = vec3(0.5, 0.5, 1.0);
-	//Compute F0 specular
-	material.f0_specular = vec3(0.5, 0.5, 1.0);
-	return material;
-}
-
-// DIRECT LIGHTING
-
-vec3 fresnel(PBRMat material)
+void initMaterialProps(out PBRMat material)
 {
-	// Compute Fresnet Reflective F
-	float l_dot_h = clamp(dot(material.L, material.H), CLAMP_MIN, CLAMP_MAX);
-	return material.f0_specular + (1.0 - material.f0_specular) * pow((1.0 - l_dot_h),5.0);
+	// roguhness: facet deviation at the surface of the material
+	material.roughness = 0.85;
+	// c_diffuse: base RGB diffuse color for Lambertian model
+	material.c_diffuse = vec3(0.35, 0.35, 0.55);
+	// f0_specular: computed RGB color for the specular reflection
+	material.f0_specular = vec3(0.7, 0.8, 0.95);	// TODO: this is still hardcoded
 }
 
-float G1(float dot_vec, float k)
+vec3 getFresnel(PBRMat material, PBRVec vectors)
 {
-	return dot_vec/(dot_vec * (1 - k) + k);
+	// return: RGB color for the Fresnel reflection equation
+	return material.f0_specular + (1.0 - material.f0_specular) * pow((1.0 - vectors.l_dot_h), 5.0);
 }
 
-float geometry_function(PBRMat material)
+float getGeometry(PBRMat material, PBRVec vectors)
 {
-
-	// Compute Geometry Function G
+	// k: geometry function factor
 	float k = pow((material.roughness + 1.0), 2.0) / 8.0;
 
-	float n_dot_l = clamp(dot(material.N, material.L), CLAMP_MIN, CLAMP_MAX);
-	float n_dot_v = clamp(dot(material.N, material.V), CLAMP_MIN, CLAMP_MAX);
-
-	float G1 = n_dot_l/(n_dot_l * (1-k)+k);
-	float G2 = n_dot_v/(n_dot_v * (1-k)+k);
+	// G1, G2: geometry factors for occlusion given L and V
+	float G1 = vectors.n_dot_l/(vectors.n_dot_l * (1.0-k)+k);
+	float G2 = vectors.n_dot_v/(vectors.n_dot_v * (1.0-k)+k);
 
 	return G1*G2;
 }
 
-float dist_function(PBRMat material){
-
-	// Compute Distribution Function 
-
+float getDistribution(PBRMat material, PBRVec vectors)
+{
+	// alpha_pow2: distribution amplitude parameter
 	float alpha_pow2 = pow(material.roughness, 2.0);
-	float n_dot_h = clamp(dot(material.N, material.H), CLAMP_MIN, CLAMP_MAX);
-	float density = pow(pow(n_dot_h, 2.0)*(alpha_pow2-1.0)+1, 2.0);
-
+	// density: pointwise color density given underlying distribution
+	float density = pow(pow(vectors.n_dot_h, 2.0) * (alpha_pow2-1.0) + 1, 2.0);
+	
 	return alpha_pow2 / density;
 }
 
-PBRMat directLighting(PBRMat material)
+void setDirectLighting(out PBRMat material, out PBRVec vectors)
 {
+	material.f_diffuse = material.c_diffuse / PI;
 
-	float n_dot_l = clamp(dot(material.N, material.L), CLAMP_MIN, CLAMP_MAX);
-	float n_dot_v = clamp(dot(material.N, material.V), CLAMP_MIN, CLAMP_MAX);
+	// F: color for the Fresnel reflection
+	vec3 F = getFresnel(material, vectors);
+	// G: amount of this color to be present by geometry
+	float G = getGeometry(material, vectors);
+	// D: pointwise density of this color given distribution fn
+	float D = getDistribution(material, vectors);
 
-	//Diffuse term (Lambert)
-	material.f_diffuse = material.c_diff / PI;
-	
-	//Specular term (facet)
-	vec3 F = fresnel(material);
-	float G = geometry_function(material);
-	float D = dist_function(material);
-	material.f_specular = (F * G * D) / (4 * n_dot_l * n_dot_v);
-
-	//PL color:
-	material.bsdf = (material.f_diffuse + material.f_specular)*n_dot_l;
-
-	return material;
-}
-
-PBRMat computeFinalColor(PBRMat material)
-{
-	material.final_color = material.bsdf;
-	return material;
+	// f_specular: specular color, f_facet refelction equation
+	material.f_specular = (F*G*D) / (4*vectors.n_dot_l*vectors.n_dot_v);
+	// normalized BSDF lighting combining diffuse and specular lighting
+	material.bsdf = (material.f_diffuse + material.f_specular)*vectors.n_dot_l;
 }
 
 void main()
 {
-	// Define PBR material
 	PBRMat pbr_material;
+	PBRVec pbr_vectors;
 
-	// Compute light equation vectors
-	lightEquationVectors(pbr_material);
-	
-	// Assign material values
-	pbr_material = assignMaterialVal(pbr_material);
+	initMaterialVectors(pbr_vectors);
+	initMaterialProps(pbr_material);
 
-	// Direct lighting
-	pbr_material = directLighting(pbr_material);
+	setDirectLighting(pbr_material, pbr_vectors);
 
-	// Compute final color
-	pbr_material = computeFinalColor(pbr_material);
-
-	vec4 color = vec4(pbr_material.final_color, 1.0);
-
-	gl_FragColor = color;
+	gl_FragColor = vec4(pbr_material.bsdf, 1.0);
 }
