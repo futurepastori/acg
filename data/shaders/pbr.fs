@@ -11,12 +11,13 @@ varying vec2 v_uv;
 uniform vec3 u_camera_position;
 uniform vec4 u_color;
 
-uniform float u_roughness;
-uniform float u_metalness;
+uniform float u_roughness_factor;
+uniform float u_metalness_factor;
 uniform vec3 u_light_position;
 
 uniform sampler2D u_roughness_map;
 uniform sampler2D u_metalness_map;
+uniform sampler2D u_normal_map;
 uniform sampler2D u_albedo_map;
 
 struct PBRMat
@@ -49,18 +50,54 @@ struct PBRVec
 	float l_dot_h;
 };
 
+//Javi Agenjo Snipet for Bump Mapping
+mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv){
+	// get edge vectors of the pixel triangle
+	vec3 dp1 = dFdx( p );
+	vec3 dp2 = dFdy( p );
+	vec2 duv1 = dFdx( uv );
+	vec2 duv2 = dFdy( uv );
+
+	// solve the linear system
+	vec3 dp2perp = cross( dp2, N );
+	vec3 dp1perp = cross( N, dp1 );
+	vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+	vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+
+	// construct a scale-invariant frame
+	float invmax = inversesqrt( max( dot(T,T), dot(B,B) ) );
+	return mat3( T * invmax, B * invmax, N );
+}
+
+
+vec3 perturbNormal( vec3 N, vec3 V, vec2 texcoord, vec3 normal_pixel )
+{
+	normal_pixel = normal_pixel * 255./127. - 128./127.;
+	mat3 TBN = cotangent_frame(N, V, texcoord);
+	return normalize(TBN * normal_pixel);
+}
+
 void initMaterialVectors(out PBRVec vectors)
 {
-	// N : normal vector at each point
-	vectors.N = normalize(v_normal); // TODO: this has to be perturbnormal (microfacets)
+	// We initialize the normal as before and create a normal mapp
+	// from the roughness texture
+	vec3 N = normalize(v_normal);
 	// L : vector towards the light
-	vectors.L = normalize(u_light_position - v_world_position);
+	vec3 L = normalize(u_light_position - v_world_position);
 	// V: vector towards the eye 
-	vectors.V = normalize(u_camera_position - v_world_position);
+	vec3 V = normalize(u_camera_position - v_world_position);
 	// R: reflected L vector
-	vectors.R = normalize(reflect(vectors.V, vectors.N));
+	vec3 R = normalize(reflect(V, N));
 	// H: half vector between V and L
-	vectors.H = normalize(vectors.V + vectors.L);
+	vec3 H = normalize(V + L);
+
+	vec4 normal_map = texture2D(u_normal_map, v_uv);
+	
+	vectors.N = perturbNormal(N, V, v_uv, normal_map.xyz);
+	vectors.L = L;
+	vectors.V = V;
+	vectors.R = R;
+	vectors.H = H;
 
 	// Some necessary dot products for the BDRF equations
 	vectors.n_dot_h = clamp(dot(vectors.N, vectors.H), CLAMP_MIN, CLAMP_MAX);
@@ -73,19 +110,19 @@ void initMaterialProps(out PBRMat material)
 {
 	
 	// roguhness: facet deviation at the surface of the material
-	vec4 roughness_texture = texture2D(u_roughness_map, v_uv);
-	material.roughness = roughness_texture.x * u_roughness;
+	vec4 material_roughness = texture2D(u_roughness_map, v_uv);
+	material.roughness = material_roughness.x * u_roughness_factor;
 
 	// Compute metalness
 	vec4 metalness_texture = texture2D(u_metalness_map, v_uv);
-	material.metalness = metalness_texture.x * u_metalness;
+	material.metalness = metalness_texture.x * u_metalness_factor;
 
 	// Compute albedo (base color)
 	vec4 albedo_texture = texture2D(u_albedo_map, v_uv);
 	material.albedo = albedo_texture.xyz;
 
 	// c_diffuse: base RGB diffuse color for Lambertian model
-	material.c_diffuse = (material.metalness * vec3(0.0)) + ((1 - material.metalness) * material.albedo);
+	material.c_diffuse = ((1 - material.metalness) * material.albedo);
 
 	// f0_specular: computed RGB color for the specular reflection
 	material.f0_specular = (material.metalness * material.albedo) + ((1 - material.metalness) * vec3(0.04));

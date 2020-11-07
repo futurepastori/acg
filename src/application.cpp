@@ -47,15 +47,16 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 
 	// Scene Nodes
 	//SceneNode* sky_node = new SceneNode("Skybox");
-	main_node = new SceneNode("Main node");
+	//main_node = new SceneNode("Main node");
 
 	//node_list.push_back(sky_node);
-	node_list.push_back(main_node);
+	//node_list.push_back(main_node);
 
 	// Meshes
 	//Mesh* box = Mesh::Get("data/meshes/box.ASE");
 	sphere = Mesh::Get("data/meshes/sphere.obj");
 	bean = Mesh::Get("data/meshes/bean.obj");
+	helmet = Mesh::Get("data/models/helmet/helmet.obj");
 
 	// Materials
 	/*sky_material = new SkyboxMaterial();
@@ -82,7 +83,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	/********* PBR ********/
 	SceneNode* node_PBR = new SceneNode("PBR");
 	node_list.push_back(node_PBR);
-	node_PBR->mesh = sphere;
+	node_PBR->mesh = helmet;
 	pbr_material = new PBRMaterial();
 	pbr_material->setTextures();
 	node_PBR->material = pbr_material;
@@ -104,12 +105,6 @@ void Application::render(void)
 	//set the camera as default
 	camera->enable();
 
-	if (try_bean) {
-		main_node->mesh = bean;
-	}
-	else {
-		main_node->mesh = sphere;
-	}
 
 	for (int i = 0; i < node_list.size(); i++) {
 		node_list[i]->render(camera);

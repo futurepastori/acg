@@ -59,8 +59,8 @@ PBRMaterial::PBRMaterial()
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 
 	light = new Light();
-	roughness_factor = 1.0;
-	metalness_factor = 1.0;
+	roughness_factor = 0.4;
+	metalness_factor = 0.15;
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/pbr.fs");
 }
 
@@ -80,24 +80,28 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 
 	shader->setUniform("u_light_position", light->position);
 
-	shader->setUniform("u_roughness", roughness_factor);
-	shader->setUniform("u_metalness", metalness_factor);
+	shader->setUniform("u_roughness_factor", roughness_factor);
+	shader->setUniform("u_metalness_factor", metalness_factor);
 
 	shader->setUniform("u_roughness_map", roughness_map);
 	shader->setUniform("u_metalness_map", metalness_map);
+	shader->setUniform("u_normal_map", normal_map);
 	shader->setUniform("u_albedo_map", albedo_map);
 }
 
 void PBRMaterial::setTextures()
 {
 	roughness_map = new Texture();
-	roughness_map->load("data/textures/roughness.png");
+	roughness_map->load("data/models/helmet/roughness.png");
+
+	normal_map = new Texture();
+	normal_map->load("data/models/helmet/normal.png");
 
 	metalness_map = new Texture();
-	metalness_map->load("data/textures/metalness.png");
+	metalness_map->load("data/models/helmet/metalness.png");
 
 	albedo_map = new Texture();
-	albedo_map->load("data/textures/color.png");
+	albedo_map->load("data/models/helmet/albedo.png");
 }
 
 void PBRMaterial::renderInMenu()

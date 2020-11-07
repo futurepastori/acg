@@ -38,6 +38,7 @@ public:
 	SceneNode* main_node;
 
 	Mesh* sphere;
+	Mesh* helmet;
 	Mesh* bean;
 	bool try_bean;
 

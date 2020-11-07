@@ -44,7 +44,7 @@ public:
 
 	float metalness_factor;
 	Texture* metalness_map;
-
+	Texture* normal_map;
 	Texture* albedo_map;
 
 	void setUniforms(Camera* camera, Matrix44 model);
