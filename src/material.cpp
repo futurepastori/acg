@@ -122,7 +122,8 @@ void PBRMaterial::setTextures()
 	HDRE* hdre = HDRE::Get("data/environments/panorama.hdre");
 
 	texture_hdre = new Texture();
-	texture_hdre->cubemapFromHDRE(hdre, 0U);
+	unsigned int LEVEL = 0;
+	texture_hdre->cubemapFromHDRE(hdre, LEVEL);
 
 	for (unsigned int i = 0; i < 5; i++)
 	{
