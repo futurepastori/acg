@@ -79,7 +79,6 @@ mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv){
 	return mat3( T * invmax, B * invmax, N );
 }
 
-
 vec3 perturbNormal( vec3 N, vec3 V, vec2 texcoord, vec3 normal_pixel )
 {
 	normal_pixel = normal_pixel * 255./127. - 128./127.;
@@ -97,7 +96,7 @@ void initMaterialVectors(out PBRVec vectors)
 	// V: vector towards the eye 
 	vec3 V = normalize(u_camera_position - v_world_position);
 	// R: reflected L vector
-	vec3 R = normalize(reflect(V, N));
+	vec3 R = normalize(-reflect(V, N));
 	// H: half vector between V and L
 	vec3 H = normalize(V + L);
 
@@ -118,7 +117,7 @@ void initMaterialVectors(out PBRVec vectors)
 
 void initMaterialProps(out PBRMat material)
 {
-	
+
 	// roguhness: facet deviation at the surface of the material
 	vec4 material_roughness = texture2D(u_roughness_map, v_uv);
 	material.roughness = material_roughness.x * u_roughness_factor;
@@ -132,7 +131,7 @@ void initMaterialProps(out PBRMat material)
 	material.albedo = albedo_texture.xyz;
 
 	// c_diffuse: base RGB diffuse color for Lambertian model
-	material.c_diffuse = ((1 - material.metalness) * material.albedo);
+	material.c_diffuse = (material.metalness * vec3(0.0)) + ((1 - material.metalness) * material.albedo);
 
 	// f0_specular: computed RGB color for the specular reflection
 	material.f0_specular = (material.metalness * material.albedo) + ((1 - material.metalness) * vec3(0.04));
@@ -180,8 +179,8 @@ void setDirectLighting(out PBRMat material, out PBRVec vectors)
 
 	// f_specular: specular color, f_facet refelction equation
 	material.f_specular = (F*G*D) / (4*vectors.n_dot_l*vectors.n_dot_v);
-	// normalized BSDF lighting combining diffuse and specular lighting
-	material.DL = (material.f_diffuse + material.f_specular)*vectors.n_dot_l;
+	// combining diffuse and specular direct lighting
+	material.DL = material.f_diffuse + material.f_specular;
 }
 
 // *** Image Based Lighting ***
@@ -212,14 +211,14 @@ void setIndirectLighting(out PBRMat material, out PBRVec vectors)
 
 	// diffuse IBL as the interpolation between a sample of the reflected color
 	// from the environment and the underlying diffuse color (L2 slides, pp. 43)
-	vec3 diffuse_sample = getReflectionColor(vectors.N, material.roughness);
+	vec3 diffuse_sample = getReflectionColor(vectors.N, 1.0);
 	vec3 diffuse_color = material.c_diffuse;
 	vec3 diffuse_IBL = diffuse_sample * diffuse_color;
 
 	// specular IBL is taken from the sampling of the reflection value
 	// and the coordinates from a LUT (L2 slides, pp. 45)
 	vec3 specular_sample = getReflectionColor(vectors.R, material.roughness);
-	vec3 specular_BDRF = material.f0_specular * BRDF_LUT.x * BRDF_LUT.y;
+	vec3 specular_BDRF = material.f0_specular * BRDF_LUT.x + BRDF_LUT.y;
 	vec3 specular_IBL = specular_sample * specular_BDRF;
 
 	material.IBL = diffuse_IBL + specular_IBL;
