@@ -97,6 +97,12 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 		shader->setUniform("u_texture_prem_3", texture_hdre_levels[3], 8);
 		shader->setUniform("u_texture_prem_4", texture_hdre_levels[4], 9);
 	}
+
+	shader->setUniform("u_with_occlusion_map", with_occlusion_map);
+	shader->setUniform("u_occlusion_map", occlusion_map, 11);
+
+	shader->setUniform("u_with_opacity_map", with_opacity_map);
+	shader->setUniform("u_opacity_map", opacity_map, 13);
 }
 
 void PBRMaterial::setTextures(int model)
@@ -107,6 +113,9 @@ void PBRMaterial::setTextures(int model)
 	albedo_map = new Texture();
 	brdf_lut = new Texture();
 
+	opacity_map = new Texture();
+	occlusion_map = new Texture();
+
 	switch (model) {
 		case 1:
 			roughness_map->load("data/models/helmet/roughness.png");
@@ -114,6 +123,10 @@ void PBRMaterial::setTextures(int model)
 			metalness_map->load("data/models/helmet/metalness.png");
 			albedo_map->load("data/models/helmet/albedo.png");
 			brdf_lut->load("data/textures/brdfLUT.png");
+			with_opacity_map = true;
+			opacity_map->load("data/models/helmet/opacity.png");
+			with_occlusion_map = true;
+			occlusion_map->load("data/models/helmet/ao.png");
 			break;
 		case 2:
 			roughness_map->load("data/textures/roughness.png");
@@ -121,6 +134,8 @@ void PBRMaterial::setTextures(int model)
 			metalness_map->load("data/textures/metalness.png");
 			albedo_map->load("data/textures/color.png");
 			brdf_lut->load("data/textures/brdfLUT.png");
+			with_opacity_map = false;
+			with_occlusion_map = false;
 			break;
 		case 3:
 			roughness_map->load("data/models/lantern/roughness.png");
@@ -128,13 +143,16 @@ void PBRMaterial::setTextures(int model)
 			metalness_map->load("data/models/lantern/metalness.png");
 			albedo_map->load("data/models/lantern/albedo.png");
 			brdf_lut->load("data/textures/brdfLUT.png");
+			with_opacity_map = true;
+			opacity_map->load("data/models/lantern/opacity.png");
+			with_occlusion_map = true;
+			occlusion_map->load("data/models/lantern/ao.png");
 			break;
 		default:
 			break;
 	}
-	
 
-	HDRE* hdre = HDRE::Get("data/environments/tv_studio.hdre");
+	HDRE* hdre = HDRE::Get("data/environments/vondelpark.hdre");
 
 	texture_hdre = new Texture();
 	unsigned int LEVEL = 0;
@@ -145,6 +163,44 @@ void PBRMaterial::setTextures(int model)
 		Texture* aux_texture = new Texture();
 		aux_texture->cubemapFromHDRE(hdre, i);
 		texture_hdre_levels[i-1] = aux_texture;
+	}
+}
+
+void PBRMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
+{
+	//set flags
+	glEnable(GL_DEPTH_TEST);
+
+	// We need to enable blending and alpha functions
+	// for opacity to work, otherwise alpha channel is 1.0
+	// https://stackoverflow.com/a/30164470
+
+	if (with_opacity_map) {
+		glEnable(GL_BLEND);	
+		// FIXME: No estic molt segur d'això però soluciona part del problema
+		// que fa que es vegi part posterior del shader o "discs" al vidre
+		glEnable(GL_CULL_FACE);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
+	if (mesh && shader)
+	{
+		//enable shader
+		shader->enable();
+
+		//upload uniforms
+		setUniforms(camera, model);
+
+		//do the draw call
+		mesh->render(GL_TRIANGLES);
+
+		//disable shader
+		shader->disable();
+	}
+
+	if (with_opacity_map) {
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
 	}
 }
 
