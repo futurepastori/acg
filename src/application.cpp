@@ -78,7 +78,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	node_list.push_back(sky_node);
 	sky_material = new SkyboxMaterial();
 
-	HDRE* hdre = HDRE::Get("data/environments/tv_studio.hdre");
+	HDRE* hdre = HDRE::Get("data/environments/vondelpark.hdre");
 
 	Texture* texture_hdre = new Texture();
 	unsigned int LEVEL = 0;

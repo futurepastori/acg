@@ -153,11 +153,11 @@ void initMaterialProps(out PBRMat material)
 
 	// roguhness: facet deviation at the surface of the material
 	vec4 material_roughness = texture2D(u_roughness_map, v_uv);
-	material.roughness = material_roughness.x * u_roughness_factor;
+	material.roughness = clamp(material_roughness.x * u_roughness_factor, CLAMP_MIN, CLAMP_MAX);
 
 	// Compute metalness
 	vec4 metalness_texture = texture2D(u_metalness_map, v_uv);
-	material.metalness = metalness_texture.x * u_metalness_factor;
+	material.metalness = clamp(metalness_texture.x * u_metalness_factor, CLAMP_MIN, CLAMP_MAX);
 
 	// Compute albedo (base color)
 	vec4 albedo_texture = texture2D(u_albedo_map, v_uv);
@@ -179,17 +179,17 @@ void initMaterialProps(out PBRMat material)
 	}
 
 	// c_diffuse: base RGB diffuse color for Lambertian model
-	material.c_diffuse = (material.metalness * vec3(0.0)) + ((1 - material.metalness) * material.albedo);
+	material.c_diffuse = material.albedo * (vec3(1.0) - vec3(material.metalness));
 
 	// f0_specular: computed RGB color for the specular reflection
-	material.f0_specular = (material.metalness * material.albedo) + ((1 - material.metalness) * vec3(0.04));
+	material.f0_specular = (vec3(material.metalness) * material.albedo) + ((vec3(1.0) - vec3(material.metalness)) * vec3(0.04));
 }
 
 // *** Direct Lighting ***
 vec3 getFresnel(PBRMat material, PBRVec vectors)
 {
 	// return: RGB color for the Fresnel reflection equation
-	return material.f0_specular + (1.0 - material.f0_specular) * pow((1.0 - vectors.l_dot_h), 5.0);
+	return material.f0_specular + (vec3(1.0) - material.f0_specular) * pow((1.0 - vectors.l_dot_h), 5.0);
 }
 
 float getGeometry(PBRMat material, PBRVec vectors)
@@ -226,9 +226,9 @@ void setDirectLighting(out PBRMat material, out PBRVec vectors)
 	float D = getDistribution(material, vectors);
 
 	// f_specular: specular color, f_facet refelction equation
-	material.f_specular = (F*G*D) / (4*vectors.n_dot_l*vectors.n_dot_v);
+	material.f_specular = (F * G * D) / (4.0 * vectors.n_dot_l * vectors.n_dot_v);
 	// combining diffuse and specular direct lighting
-	material.DL = material.f_diffuse + material.f_specular;
+	material.DL = (material.f_diffuse + material.f_specular)*vectors.n_dot_l;
 }
 
 // *** Image Based Lighting ***
@@ -270,7 +270,7 @@ void setIndirectLighting(out PBRMat material, out PBRVec vectors)
 	// and the coordinates from a LUT (L2 slides, pp. 45) - brdf light terms
 	vec3 specular_sample = getReflectionColor(vectors.R, material.roughness);
 	vec3 specular_BDRF = material.f0_specular * BRDF_LUT.x + BRDF_LUT.y;
-	vec3 specular_IBL = specular_sample * specular_BDRF;
+	vec3 specular_IBL = specular_BDRF * specular_sample;
 
 	// environment color
 	material.IBL = (diffuse_IBL + specular_IBL) * material.occlusion;
@@ -281,7 +281,7 @@ void getPixelColor(out PBRMat material, out PBRVec vectors)
 {
 	setDirectLighting(material, vectors);
 	setIndirectLighting(material, vectors);
-	material.final_color = material.DL + material.IBL;
+	material.final_color = vec3(0.0) + material.DL + material.IBL;
 }
 
 
