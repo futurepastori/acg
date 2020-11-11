@@ -39,6 +39,7 @@ public:
 
 	Mesh* sphere;
 	Mesh* helmet;
+	Mesh* lantern;
 	Mesh* bean;
 	bool try_bean;
 

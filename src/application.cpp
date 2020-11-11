@@ -57,6 +57,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	//sphere = Mesh::Get("data/meshes/sphere.obj");
 	//bean = Mesh::Get("data/meshes/bean.obj");
 	helmet = Mesh::Get("data/models/helmet/helmet.obj");
+	lantern = Mesh::Get("data/models/lantern/lantern.obj");
 
 	// Materials
 	//sky_material = new SkyboxMaterial();
@@ -94,9 +95,9 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	/********* PBR ********/
 	SceneNode* node_PBR = new SceneNode("PBR");
 	node_list.push_back(node_PBR);
-	node_PBR->mesh = helmet;
+	node_PBR->mesh = lantern;
 	pbr_material = new PBRMaterial();
-	pbr_material->setTextures();
+	pbr_material->setTextures(3);
 	node_PBR->material = pbr_material;
 
 	try_bean = false;

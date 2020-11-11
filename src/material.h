@@ -56,7 +56,7 @@ public:
 
 
 	void setUniforms(Camera* camera, Matrix44 model);
-	void setTextures();
+	void setTextures(int model);
 	void renderInMenu();
 };
 

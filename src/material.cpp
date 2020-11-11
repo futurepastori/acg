@@ -59,8 +59,8 @@ PBRMaterial::PBRMaterial()
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 
 	light = new Light();
-	roughness_factor = 0.55;
-	metalness_factor = 0.50;
+	roughness_factor = 0.0;
+	metalness_factor = 0.0;
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/pbr.fs");
 }
 
@@ -99,25 +99,40 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 	}
 }
 
-void PBRMaterial::setTextures()
+void PBRMaterial::setTextures(int model)
 {
 	roughness_map = new Texture();
-	roughness_map->load("data/models/helmet/roughness.png");
-
 	normal_map = new Texture();
-	normal_map->load("data/models/helmet/normal.png");
-
 	metalness_map = new Texture();
-	metalness_map->load("data/models/helmet/metalness.png");
-
 	albedo_map = new Texture();
-	albedo_map->load("data/models/helmet/albedo.png");
-
-	albedo_map = new Texture();
-	albedo_map->load("data/models/helmet/albedo.png");
-
 	brdf_lut = new Texture();
-	brdf_lut->load("data/textures/brdfLUT.png");
+
+	switch (model) {
+		case 1:
+			roughness_map->load("data/models/helmet/roughness.png");
+			normal_map->load("data/models/helmet/normal.png");
+			metalness_map->load("data/models/helmet/metalness.png");
+			albedo_map->load("data/models/helmet/albedo.png");
+			brdf_lut->load("data/textures/brdfLUT.png");
+			break;
+		case 2:
+			roughness_map->load("data/textures/roughness.png");
+			normal_map->load("data/textures/normal.png");
+			metalness_map->load("data/textures/metalness.png");
+			albedo_map->load("data/textures/color.png");
+			brdf_lut->load("data/textures/brdfLUT.png");
+			break;
+		case 3:
+			roughness_map->load("data/models/lantern/roughness.png");
+			normal_map->load("data/models/lantern/normal.png");
+			metalness_map->load("data/models/lantern/metalness.png");
+			albedo_map->load("data/models/lantern/albedo.png");
+			brdf_lut->load("data/textures/brdfLUT.png");
+			break;
+		default:
+			break;
+	}
+	
 
 	HDRE* hdre = HDRE::Get("data/environments/panorama.hdre");
 
