@@ -81,6 +81,8 @@ public:
 class SkyboxMaterial : public StandardMaterial {
 public:
 
+	bool hdre;
+
 	SkyboxMaterial();
 	~SkyboxMaterial();
 

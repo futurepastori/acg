@@ -46,10 +46,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	camera->setPerspective(45.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
 	// Scene Nodes
-	SceneNode* sky_node = new SceneNode("Skybox");
 	//main_node = new SceneNode("Main node");
-
-	node_list.push_back(sky_node);
 	//node_list.push_back(main_node);
 
 	// Meshes
@@ -60,7 +57,6 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	lantern = Mesh::Get("data/models/lantern/lantern.obj");
 
 	// Materials
-	//sky_material = new SkyboxMaterial();
 	/*phong_material = new PhongMaterial();
 	mirror_material = new MirrorMaterial();
 	phong_mirror_material = new PhongMirrorMaterial();*/
@@ -78,19 +74,19 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	//sky_node->material = sky_material;
 
 	/********* SKY NODE *******/
-	SceneNode* sky = new SceneNode("sky");
-	sky->mesh = new Mesh();
-	sky->mesh = box;
+	SceneNode* sky_node = new SceneNode("Skybox");
+	node_list.push_back(sky_node);
+	sky_material = new SkyboxMaterial();
 
-	SkyboxMaterial* sky_material = new SkyboxMaterial();
-	Texture* sky_texture = new Texture();
+	HDRE* hdre = HDRE::Get("data/environments/tv_studio.hdre");
 
-	HDRE* hdre = HDRE::Get("data/environments/panorama.hdre");
-	sky_texture->cubemapFromHDRE(hdre, 0U);
+	Texture* texture_hdre = new Texture();
+	unsigned int LEVEL = 0;
+	texture_hdre->cubemapFromHDRE(hdre, LEVEL);
+	sky_material->texture = texture_hdre;
 
-	sky_material->texture = sky_texture;
-	sky->material = sky_material;
-	node_list.push_back(sky);
+	sky_node->mesh = box;
+	sky_node->material = sky_material;
 
 	/********* PBR ********/
 	SceneNode* node_PBR = new SceneNode("PBR");

@@ -59,8 +59,8 @@ PBRMaterial::PBRMaterial()
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 
 	light = new Light();
-	roughness_factor = 0.0;
-	metalness_factor = 0.0;
+	roughness_factor = 1.0;
+	metalness_factor = 1.0;
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/pbr.fs");
 }
 
@@ -134,23 +134,24 @@ void PBRMaterial::setTextures(int model)
 	}
 	
 
-	HDRE* hdre = HDRE::Get("data/environments/panorama.hdre");
+	HDRE* hdre = HDRE::Get("data/environments/tv_studio.hdre");
 
 	texture_hdre = new Texture();
 	unsigned int LEVEL = 0;
 	texture_hdre->cubemapFromHDRE(hdre, LEVEL);
 
-	for (unsigned int i = 0; i < 5; i++)
+	for (unsigned int i = 1; i < 6; i++)
 	{
 		Texture* aux_texture = new Texture();
 		aux_texture->cubemapFromHDRE(hdre, i);
-		texture_hdre_levels[i] = aux_texture;
+		texture_hdre_levels[i-1] = aux_texture;
 	}
 }
 
 void PBRMaterial::renderInMenu()
 {
-
+	ImGui::DragFloat("roughness", (float*)&roughness_factor, 0.01, 0.0, 1.0);
+	ImGui::DragFloat("metalness", (float*)&metalness_factor, 0.01, 0.0, 1.0);
 }
 
 PhongMaterial::PhongMaterial()
@@ -168,7 +169,7 @@ PhongMaterial::PhongMaterial()
 
 PhongMaterial::~PhongMaterial()
 {
-
+	
 }
 
 void PhongMaterial::setUniforms(Camera* camera, Matrix44 model)
@@ -209,11 +210,12 @@ void PhongMaterial::renderInMenu()
 SkyboxMaterial::SkyboxMaterial()
 {
 	shader = Shader::Get("data/shaders/skybox.vs", "data/shaders/skybox.fs");
+	texture = new Texture();
 }
 
 SkyboxMaterial::~SkyboxMaterial()
 {
-	texture = new Texture();
+
 }
 
 void SkyboxMaterial::setUniforms(Camera* camera)

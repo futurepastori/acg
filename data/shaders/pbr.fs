@@ -120,7 +120,7 @@ void initMaterialVectors(out PBRVec vectors)
 	// V: vector towards the eye 
 	vec3 V = normalize(u_camera_position - v_world_position);
 	// R: reflected L vector
-	vec3 R = normalize(-reflect(V, N));
+	vec3 R = normalize(reflect(-V, N));
 	// H: half vector between V and L
 	vec3 H = normalize(V + L);
 
@@ -153,6 +153,7 @@ void initMaterialProps(out PBRMat material)
 	// Compute albedo (base color)
 	vec4 albedo_texture = texture2D(u_albedo_map, v_uv);
 	material.albedo = gamma_to_linear(albedo_texture.xyz);// Degamma before operations
+	
 
 	// c_diffuse: base RGB diffuse color for Lambertian model
 	material.c_diffuse = (material.metalness * vec3(0.0)) + ((1 - material.metalness) * material.albedo);
@@ -228,7 +229,7 @@ vec3 getReflectionColor(vec3 r, float roughness)
 
 vec4 getBRDFLUT(PBRMat material, PBRVec vectors)
 {
-	vec2 vector = vec2(material.roughness, vectors.n_dot_v);
+	vec2 vector = vec2(vectors.n_dot_v, material.roughness);
 	return texture2D(u_brdf_lut, vector);
 }
 
@@ -278,6 +279,9 @@ void main()
 	color.xyz = toneMap(color.xyz);
 	//Gamma correction to show in screen
 	color.xyz = linear_to_gamma(color.xyz);
+	
+	//vec4 test_color = textureCube(u_texture_prem_4, pbr_vectors.R);
+	//test_color.xyz = toneMap(test_color.xyz);
 
 	gl_FragColor = color;
 }
