@@ -152,9 +152,7 @@ void PBRMaterial::setTextures(int model)
 			break;
 	}
 
-
-
-	HDRE* hdre = HDRE::Get("data/environments/tv_studio.hdre");
+	HDRE* hdre = HDRE::Get("data/environments/vondelpark.hdre");
 
 	texture_hdre = new Texture();
 	unsigned int LEVEL = 0;

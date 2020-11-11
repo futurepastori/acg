@@ -73,9 +73,6 @@ struct PBRVec
 	float l_dot_h;
 };
 
-// Convert 0-Inf range to 0-1 range so we can
-// display info on screen
-
 vec3 toneMap(vec3 color)
 {
     return color / (color + vec3(1.0));
@@ -150,14 +147,13 @@ void initMaterialVectors(out PBRVec vectors)
 
 void initMaterialProps(out PBRMat material)
 {
-
 	// roguhness: facet deviation at the surface of the material
 	vec4 material_roughness = texture2D(u_roughness_map, v_uv);
-	material.roughness = clamp(material_roughness.x * u_roughness_factor, CLAMP_MIN, CLAMP_MAX);
+	material.roughness = material_roughness.x * u_roughness_factor;
 
 	// Compute metalness
 	vec4 metalness_texture = texture2D(u_metalness_map, v_uv);
-	material.metalness = clamp(metalness_texture.x * u_metalness_factor, CLAMP_MIN, CLAMP_MAX);
+	material.metalness = metalness_texture.x * u_metalness_factor;
 
 	// Compute albedo (base color)
 	vec4 albedo_texture = texture2D(u_albedo_map, v_uv);
@@ -179,23 +175,25 @@ void initMaterialProps(out PBRMat material)
 	}
 
 	// c_diffuse: base RGB diffuse color for Lambertian model
-	material.c_diffuse = material.albedo * (vec3(1.0) - vec3(material.metalness));
+	//material.c_diffuse = material.albedo * (vec3(1.0) - vec3(material.metalness));
+	material.c_diffuse = (material.metalness * vec3(0.0)) + ((1.0 - material.metalness) * material.albedo);
 
 	// f0_specular: computed RGB color for the specular reflection
-	material.f0_specular = (vec3(material.metalness) * material.albedo) + ((vec3(1.0) - vec3(material.metalness)) * vec3(0.04));
+	//material.f0_specular = (vec3(material.metalness) * material.albedo) + ((vec3(1.0) - vec3(material.metalness)) * vec3(0.04));
+	material.f0_specular = (material.metalness * material.albedo) + ((1.0 - material.metalness) * vec3(0.04));;
 }
 
 // *** Direct Lighting ***
 vec3 getFresnel(PBRMat material, PBRVec vectors)
 {
 	// return: RGB color for the Fresnel reflection equation
-	return material.f0_specular + (vec3(1.0) - material.f0_specular) * pow((1.0 - vectors.l_dot_h), 5.0);
+	return material.f0_specular + (1.0 - material.f0_specular) * pow((1.0 - vectors.n_dot_l), 5.0);
 }
 
 float getGeometry(PBRMat material, PBRVec vectors)
 {
 	// k: geometry function factor
-	float k = pow((material.roughness + 1.0), 2.0) / 8.0;
+	float k = pow(material.roughness + 1.0, 2.0) / 8.0;
 
 	// G1, G2: geometry factors for occlusion given L and V
 	float G1 = vectors.n_dot_l/(vectors.n_dot_l * (1.0-k)+k);
@@ -207,9 +205,11 @@ float getGeometry(PBRMat material, PBRVec vectors)
 float getDistribution(PBRMat material, PBRVec vectors)
 {
 	// alpha_pow2: distribution amplitude parameter
-	float alpha_pow2 = pow(material.roughness, 2.0);
+	// alpha is roughness^2
+	float alpha = pow(material.roughness, 2.0);
+	float alpha_pow2 = pow(alpha, 2.0);
 	// density: pointwise color density given underlying distribution
-	float density = pow(pow(vectors.n_dot_h, 2.0) * (alpha_pow2-1.0) + 1, 2.0);
+	float density = PI * pow(pow(vectors.n_dot_h,2.0) * (alpha_pow2 - 1.0) + 1.0, 2.0);
 	
 	return alpha_pow2 / density;
 }
@@ -303,8 +303,5 @@ void main()
 	//Gamma correction to show in screen
 	color.xyz = linear_to_gamma(color.xyz);
 	
-	//vec4 test_color = textureCube(u_texture_prem_4, pbr_vectors.R);
-	//test_color.xyz = toneMap(test_color.xyz);
-	
-	gl_FragColor = vec4(color.x, color.y, color.z, pbr_material.opacity);
+	gl_FragColor = vec4(color.xyz, pbr_material.opacity);
 }
