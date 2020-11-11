@@ -47,6 +47,12 @@ public:
 	Texture* normal_map;
 	Texture* albedo_map;
 	Texture* brdf_lut;
+	
+	// Optional maps
+	bool with_occlusion_map;
+	Texture* occlusion_map;
+	bool with_opacity_map;
+	Texture* opacity_map;
 
 	// We create a single texture_hdre texture
 	// and a collection of HDR cubemaps sorted by blur
@@ -54,9 +60,9 @@ public:
 	Texture* texture_hdre;
 	Texture* texture_hdre_levels[5];
 
-
 	void setUniforms(Camera* camera, Matrix44 model);
 	void setTextures(int model);
+	void render(Mesh* mesh, Matrix44 model, Camera * camera);
 	void renderInMenu();
 };
 

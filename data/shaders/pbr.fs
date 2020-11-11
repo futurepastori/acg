@@ -25,6 +25,12 @@ uniform sampler2D u_brdf_lut;
 
 uniform sampler2D u_normal_map;
 
+uniform bool u_with_opacity_map;
+uniform bool u_with_occlusion_map;
+
+uniform sampler2D u_opacity_map;
+uniform sampler2D u_occlusion_map;
+
 // Levels of the HDR Environment to simulate roughness material (IBL)
 uniform samplerCube u_texture;		 	// Original 
 uniform samplerCube u_texture_prem_0; 	// Level 0
@@ -44,6 +50,9 @@ struct PBRMat
 	float roughness;
 	float metalness;
 	vec3 albedo; // Base color
+
+	float opacity;
+	vec3 occlusion;
 
 	vec3 DL;
 	vec3 IBL;
@@ -152,8 +161,22 @@ void initMaterialProps(out PBRMat material)
 
 	// Compute albedo (base color)
 	vec4 albedo_texture = texture2D(u_albedo_map, v_uv);
-	material.albedo = gamma_to_linear(albedo_texture.xyz);// Degamma before operations
-	
+	material.albedo = gamma_to_linear(albedo_texture.xyz);// Degamma before operation
+
+	// Compute opacity map
+	if (u_with_opacity_map) {
+		vec4 opacity_texture = texture2D(u_opacity_map, v_uv);
+		material.opacity = opacity_texture.x;
+	} else {
+		material.opacity = 1.0;
+	}
+
+	if (u_with_occlusion_map) {
+		vec4 occlusion_texture = texture2D(u_occlusion_map, v_uv);
+		material.occlusion = occlusion_texture.xyz;
+	} else {
+		material.occlusion = vec3(1.0);
+	}
 
 	// c_diffuse: base RGB diffuse color for Lambertian model
 	material.c_diffuse = (material.metalness * vec3(0.0)) + ((1 - material.metalness) * material.albedo);
@@ -250,7 +273,7 @@ void setIndirectLighting(out PBRMat material, out PBRVec vectors)
 	vec3 specular_IBL = specular_sample * specular_BDRF;
 
 	// environment color
-	material.IBL = diffuse_IBL + specular_IBL;
+	material.IBL = (diffuse_IBL + specular_IBL) * material.occlusion;
 }
 
 // *** Final Color ***
@@ -282,6 +305,6 @@ void main()
 	
 	//vec4 test_color = textureCube(u_texture_prem_4, pbr_vectors.R);
 	//test_color.xyz = toneMap(test_color.xyz);
-
-	gl_FragColor = color;
+	
+	gl_FragColor = vec4(color.x, color.y, color.z, pbr_material.opacity);
 }
