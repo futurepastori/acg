@@ -1,7 +1,9 @@
+// Constants
 #define CLAMP_MAX 0.99
 #define CLAMP_MIN 0.01
-
 #define PI 3.14159265359
+#define GAMMA 2.2
+#define INV_GAMMA 0.45
 
 varying vec3 v_position;
 varying vec3 v_world_position;
@@ -15,13 +17,15 @@ uniform float u_roughness_factor;
 uniform float u_metalness_factor;
 uniform vec3 u_light_position;
 
+// Textures
 uniform sampler2D u_albedo_map;
-uniform sampler2D u_normal_map;
 uniform sampler2D u_metalness_map;
 uniform sampler2D u_roughness_map;
 uniform sampler2D u_brdf_lut;
 
-// IBL: HDR levels to simulate roughness
+uniform sampler2D u_normal_map;
+
+// Levels of the HDR Environment to simulate roughness material (IBL)
 uniform samplerCube u_texture;		 	// Original 
 uniform samplerCube u_texture_prem_0; 	// Level 0
 uniform samplerCube u_texture_prem_1; 	// ..
@@ -59,6 +63,26 @@ struct PBRVec
 	float n_dot_h;
 	float l_dot_h;
 };
+
+// Convert 0-Inf range to 0-1 range so we can
+// display info on screen
+
+vec3 toneMap(vec3 color)
+{
+    return color / (color + vec3(1.0));
+}
+
+// degamma
+vec3 gamma_to_linear(vec3 color)
+{
+	return pow(color, vec3(GAMMA));
+}
+
+// gamma
+vec3 linear_to_gamma(vec3 color)
+{
+	return pow(color, vec3(INV_GAMMA));
+}
 
 //Javi Agenjo Snipet for Bump Mapping
 mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv){
@@ -128,7 +152,7 @@ void initMaterialProps(out PBRMat material)
 
 	// Compute albedo (base color)
 	vec4 albedo_texture = texture2D(u_albedo_map, v_uv);
-	material.albedo = albedo_texture.xyz;
+	material.albedo = gamma_to_linear(albedo_texture.xyz);// Degamma before operations
 
 	// c_diffuse: base RGB diffuse color for Lambertian model
 	material.c_diffuse = (material.metalness * vec3(0.0)) + ((1 - material.metalness) * material.albedo);
@@ -184,6 +208,9 @@ void setDirectLighting(out PBRMat material, out PBRVec vectors)
 }
 
 // *** Image Based Lighting ***
+
+// Get the corresponding environment reflection given the 
+// material roughness and the reflection vector
 vec3 getReflectionColor(vec3 r, float roughness)
 {
 	float lod = roughness * 5.0;
@@ -216,11 +243,12 @@ void setIndirectLighting(out PBRMat material, out PBRVec vectors)
 	vec3 diffuse_IBL = diffuse_sample * diffuse_color;
 
 	// specular IBL is taken from the sampling of the reflection value
-	// and the coordinates from a LUT (L2 slides, pp. 45)
+	// and the coordinates from a LUT (L2 slides, pp. 45) - brdf light terms
 	vec3 specular_sample = getReflectionColor(vectors.R, material.roughness);
 	vec3 specular_BDRF = material.f0_specular * BRDF_LUT.x + BRDF_LUT.y;
 	vec3 specular_IBL = specular_sample * specular_BDRF;
 
+	// environment color
 	material.IBL = diffuse_IBL + specular_IBL;
 }
 
@@ -232,6 +260,7 @@ void getPixelColor(out PBRMat material, out PBRVec vectors)
 	material.final_color = material.DL + material.IBL;
 }
 
+
 void main()
 {
 	PBRMat pbr_material;
@@ -242,5 +271,13 @@ void main()
 
 	getPixelColor(pbr_material, pbr_vectors);
 
-	gl_FragColor = vec4(pbr_material.final_color, 1.0);
+	// Total color
+	vec4 color = vec4(pbr_material.final_color, 1.0);
+
+	// Tone mapping for the HDR envoronments
+	color.xyz = toneMap(color.xyz);
+	//Gamma correction to show in screen
+	color.xyz = linear_to_gamma(color.xyz);
+
+	gl_FragColor = color;
 }
