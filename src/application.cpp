@@ -46,57 +46,37 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	camera->setPerspective(45.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
 	// Scene Nodes
-	//main_node = new SceneNode("Main node");
-	//node_list.push_back(main_node);
+	SceneNode* sky_node = new SceneNode("Skybox");
+	SceneNode* lantern_node = new SceneNode("PBR");
+	lantern_node->model.scale(0.2, 0.2, 0.2);
+	lantern_node->model.translate(0, -20, 0);
+
+	node_list.push_back(sky_node);
+	node_list.push_back(lantern_node);
 
 	// Meshes
 	Mesh* box = Mesh::Get("data/meshes/box.ASE");
-	//sphere = Mesh::Get("data/meshes/sphere.obj");
-	//bean = Mesh::Get("data/meshes/bean.obj");
-	helmet = Mesh::Get("data/models/helmet/helmet.obj");
-	lantern = Mesh::Get("data/models/lantern/lantern.obj");
+	Mesh* helmet = Mesh::Get("data/models/helmet/helmet.obj");
+	Mesh* lantern = Mesh::Get("data/models/lantern/lantern.obj");
+
+	sky_node->mesh = box;
+	lantern_node->mesh = lantern;
 
 	// Materials
-	/*phong_material = new PhongMaterial();
-	mirror_material = new MirrorMaterial();
-	phong_mirror_material = new PhongMirrorMaterial();*/
+	StandardMaterial* sky_material = new SkyboxMaterial();
+	PBRMaterial* pbr_material = new PBRMaterial();
+	sky_node->material = sky_material;
 
-	//Texture* mirror_texture = new Texture();
-
-	//main_texture = Texture::Get("data/textures/roughness.png");
-	//mirror_texture->cubemapFromImages("data/environments/snow");
-
-	//sky_material->texture = sky_texture;
-	//mirror_material->texture = mirror_texture;
-	//phong_mirror_material->texture = mirror_texture;
-
-	//sky_node->mesh = box;
-	//sky_node->material = sky_material;
-
-	/********* SKY NODE *******/
-	SceneNode* sky_node = new SceneNode("Skybox");
-	node_list.push_back(sky_node);
-	sky_material = new SkyboxMaterial();
-
+	// Textures
 	HDRE* hdre = HDRE::Get("data/environments/vondelpark.hdre");
-
 	Texture* texture_hdre = new Texture();
 	unsigned int LEVEL = 0;
 	texture_hdre->cubemapFromHDRE(hdre, LEVEL);
+
+	pbr_material->setTextures();
+
 	sky_material->texture = texture_hdre;
-
-	sky_node->mesh = box;
-	sky_node->material = sky_material;
-
-	/********* PBR ********/
-	SceneNode* node_PBR = new SceneNode("PBR");
-	node_list.push_back(node_PBR);
-	node_PBR->mesh = lantern;
-	pbr_material = new PBRMaterial();
-	pbr_material->setTextures(3);
-	node_PBR->material = pbr_material;
-
-	try_bean = false;
+	lantern_node->material = pbr_material;
 
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 }
@@ -184,22 +164,6 @@ void Application::update(double seconds_elapsed)
 
 void Application::renderInMenu()
 {
-
-	// Show and edit your global variables on the fly here
-	if (ImGui::Button("Switch to Phong w/ Texture"))
-	{
-		main_node->material = phong_material;
-	}
-	if (ImGui::Button("Switch to Mirror"))
-	{
-		main_node->material = mirror_material;
-	}
-	if (ImGui::Button("Switch to Phong Mirror"))
-	{
-		main_node->material = phong_mirror_material;
-	}
-	ImGui::Text("WANT TO TRY ANOTHER OBJECT?");
-	ImGui::Checkbox("Try with a bean", &try_bean);
 	
 }
 

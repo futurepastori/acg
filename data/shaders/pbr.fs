@@ -16,17 +16,22 @@ uniform vec4 u_color;
 uniform float u_roughness_factor;
 uniform float u_metalness_factor;
 uniform vec3 u_light_position;
+uniform vec3 u_light_color;
 
 // Textures
+uniform bool u_with_direct_lighting;
+uniform bool u_with_indirect_lighting;
+uniform bool u_with_normal_map;
+uniform bool u_with_opacity_map;
+uniform bool u_with_occlusion_map;
+uniform bool u_with_gamma;
+
 uniform sampler2D u_albedo_map;
 uniform sampler2D u_metalness_map;
 uniform sampler2D u_roughness_map;
 uniform sampler2D u_brdf_lut;
 
 uniform sampler2D u_normal_map;
-
-uniform bool u_with_opacity_map;
-uniform bool u_with_occlusion_map;
 
 uniform sampler2D u_opacity_map;
 uniform sampler2D u_occlusion_map;
@@ -130,9 +135,13 @@ void initMaterialVectors(out PBRVec vectors)
 	// H: half vector between V and L
 	vec3 H = normalize(V + L);
 
-	vec4 normal_map = texture2D(u_normal_map, v_uv);
-	
-	vectors.N = perturbNormal(N, V, v_uv, normal_map.xyz);
+	if (u_with_normal_map) {
+		vec4 normal_map = texture2D(u_normal_map, v_uv);
+		vectors.N = perturbNormal(N, V, v_uv, normal_map.xyz);
+	} else {
+		vectors.N = N;
+	}
+
 	vectors.L = L;
 	vectors.V = V;
 	vectors.R = R;
@@ -157,9 +166,13 @@ void initMaterialProps(out PBRMat material)
 
 	// Compute albedo (base color)
 	vec4 albedo_texture = texture2D(u_albedo_map, v_uv);
-	material.albedo = gamma_to_linear(albedo_texture.xyz);// Degamma before operation
+	if (u_with_gamma) {
+		material.albedo = gamma_to_linear(albedo_texture.xyz);// Degamma before operation
+	} else {
+		material.albedo = albedo_texture.xyz;
+	}
 
-	// Compute opacity map
+	// Compfute opacity map
 	if (u_with_opacity_map) {
 		vec4 opacity_texture = texture2D(u_opacity_map, v_uv);
 		material.opacity = opacity_texture.x;
@@ -180,7 +193,7 @@ void initMaterialProps(out PBRMat material)
 
 	// f0_specular: computed RGB color for the specular reflection
 	//material.f0_specular = (vec3(material.metalness) * material.albedo) + ((vec3(1.0) - vec3(material.metalness)) * vec3(0.04));
-	material.f0_specular = (material.metalness * material.albedo) + ((1.0 - material.metalness) * vec3(0.04));;
+	material.f0_specular = (material.metalness * material.albedo) + ((1.0 - material.metalness) * vec3(0.04));
 }
 
 // *** Direct Lighting ***
@@ -228,7 +241,8 @@ void setDirectLighting(out PBRMat material, out PBRVec vectors)
 	// f_specular: specular color, f_facet refelction equation
 	material.f_specular = (F * G * D) / (4.0 * vectors.n_dot_l * vectors.n_dot_v);
 	// combining diffuse and specular direct lighting
-	material.DL = (material.f_diffuse + material.f_specular)*vectors.n_dot_l;
+	vec3 incident_light = vectors.n_dot_l*u_light_color;
+	material.DL = (material.f_diffuse + material.f_specular)*incident_light;
 }
 
 // *** Image Based Lighting ***
@@ -281,7 +295,14 @@ void getPixelColor(out PBRMat material, out PBRVec vectors)
 {
 	setDirectLighting(material, vectors);
 	setIndirectLighting(material, vectors);
-	material.final_color = vec3(0.0) + material.DL + material.IBL;
+	
+	material.final_color = vec3(0.0);
+
+	if (u_with_direct_lighting)
+		material.final_color += material.DL;
+	
+	if (u_with_indirect_lighting)
+		material.final_color += material.IBL;
 }
 
 
@@ -301,7 +322,9 @@ void main()
 	// Tone mapping for the HDR envoronments
 	color.xyz = toneMap(color.xyz);
 	//Gamma correction to show in screen
-	color.xyz = linear_to_gamma(color.xyz);
+	if (u_with_gamma) {
+		color.xyz = linear_to_gamma(color.xyz);
+	}
 	
-	gl_FragColor = vec4(color.xyz, pbr_material.opacity);
+	gl_FragColor = vec4(color.xyz, material.opacity);
 }

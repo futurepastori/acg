@@ -43,7 +43,11 @@ public:
 	Texture* roughness_map;
 
 	float metalness_factor;
+	bool with_direct_lighting;
+	bool with_indirect_lighting;
 	Texture* metalness_map;
+
+	bool with_normal_map;
 	Texture* normal_map;
 	Texture* albedo_map;
 	Texture* brdf_lut;
@@ -53,6 +57,8 @@ public:
 	Texture* occlusion_map;
 	bool with_opacity_map;
 	Texture* opacity_map;
+	
+	bool with_gamma;
 
 	// We create a single texture_hdre texture
 	// and a collection of HDR cubemaps sorted by blur
@@ -61,7 +67,7 @@ public:
 	Texture* texture_hdre_levels[5];
 
 	void setUniforms(Camera* camera, Matrix44 model);
-	void setTextures(int model);
+	void setTextures();
 	void render(Mesh* mesh, Matrix44 model, Camera * camera);
 	void renderInMenu();
 };

@@ -79,12 +79,21 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_color", color);
 
 	shader->setUniform("u_light_position", light->position);
+	shader->setUniform("u_light_color", light->diffuse);
+	
+	shader->setUniform("u_with_direct_lighting", with_direct_lighting);
+	shader->setUniform("u_with_indirect_lighting", with_indirect_lighting);
 
 	shader->setUniform("u_roughness_factor", roughness_factor);
 	shader->setUniform("u_metalness_factor", metalness_factor);
 
 	shader->setUniform("u_albedo_map", albedo_map, 0);
+
+	shader->setUniform("u_with_normal_map", with_normal_map);
 	shader->setUniform("u_normal_map", normal_map, 1);
+	
+	shader->setUniform("u_with_gamma", with_gamma);
+
 	shader->setUniform("u_metalness_map", metalness_map, 2);
 	shader->setUniform("u_roughness_map", roughness_map, 3);
 
@@ -105,7 +114,7 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_opacity_map", opacity_map, 13);
 }
 
-void PBRMaterial::setTextures(int model)
+void PBRMaterial::setTextures()
 {
 	roughness_map = new Texture();
 	normal_map = new Texture();
@@ -116,41 +125,20 @@ void PBRMaterial::setTextures(int model)
 	opacity_map = new Texture();
 	occlusion_map = new Texture();
 
-	switch (model) {
-		case 1:
-			roughness_map->load("data/models/helmet/roughness.png");
-			normal_map->load("data/models/helmet/normal.png");
-			metalness_map->load("data/models/helmet/metalness.png");
-			albedo_map->load("data/models/helmet/albedo.png");
-			brdf_lut->load("data/textures/brdfLUT.png");
-			with_opacity_map = true;
-			opacity_map->load("data/models/helmet/opacity.png");
-			with_occlusion_map = true;
-			occlusion_map->load("data/models/helmet/ao.png");
-			break;
-		case 2:
-			roughness_map->load("data/textures/roughness.png");
-			normal_map->load("data/textures/normal.png");
-			metalness_map->load("data/textures/metalness.png");
-			albedo_map->load("data/textures/color.png");
-			brdf_lut->load("data/textures/brdfLUT.png");
-			with_opacity_map = false;
-			with_occlusion_map = false;
-			break;
-		case 3:
-			roughness_map->load("data/models/lantern/roughness.png");
-			normal_map->load("data/models/lantern/normal.png");
-			metalness_map->load("data/models/lantern/metalness.png");
-			albedo_map->load("data/models/lantern/albedo.png");
-			brdf_lut->load("data/textures/brdfLUT.png");
-			with_opacity_map = true;
-			opacity_map->load("data/models/lantern/opacity.png");
-			with_occlusion_map = true;
-			occlusion_map->load("data/models/lantern/ao.png");
-			break;
-		default:
-			break;
-	}
+	with_direct_lighting = true;
+	with_indirect_lighting = true;
+	with_normal_map = true;
+	with_opacity_map = true;
+	with_occlusion_map = true;
+	with_gamma = true;
+
+	roughness_map->load("data/models/lantern/roughness.png");
+	normal_map->load("data/models/lantern/normal.png");
+	metalness_map->load("data/models/lantern/metalness.png");
+	albedo_map->load("data/models/lantern/albedo.png");
+	brdf_lut->load("data/textures/brdfLUT.png");
+	opacity_map->load("data/models/lantern/opacity.png");
+	occlusion_map->load("data/models/lantern/ao.png");
 
 	HDRE* hdre = HDRE::Get("data/environments/vondelpark.hdre");
 
@@ -206,8 +194,17 @@ void PBRMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 
 void PBRMaterial::renderInMenu()
 {
+	ImGui::Checkbox("With direct lighting", &with_direct_lighting);
+	ImGui::Checkbox("With IBL", &with_indirect_lighting);
+
 	ImGui::DragFloat("roughness", (float*)&roughness_factor, 0.01, 0.0, 1.0);
 	ImGui::DragFloat("metalness", (float*)&metalness_factor, 0.01, 0.0, 1.0);
+	
+	ImGui::Checkbox("Normal map", &with_normal_map);
+	ImGui::Checkbox("Opacity map", &with_opacity_map);
+	ImGui::Checkbox("Occlusion map", &with_occlusion_map);
+	
+	ImGui::Checkbox("Gamma correction", &with_gamma);
 }
 
 PhongMaterial::PhongMaterial()

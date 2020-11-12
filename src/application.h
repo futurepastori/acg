@@ -34,24 +34,6 @@ public:
 	static Camera* camera; //our GLOBAL camera
 	bool mouse_locked; //tells if the mouse is locked (not seen)
 
-	//global variables for imgui
-	SceneNode* main_node;
-
-	Mesh* sphere;
-	Mesh* helmet;
-	Mesh* lantern;
-	Mesh* bean;
-	bool try_bean;
-
-	Texture* main_texture;
-
-	SkyboxMaterial* sky_material;
-	PhongMaterial* phong_material;
-	MirrorMaterial* mirror_material;
-	PhongMirrorMaterial* phong_mirror_material;
-	PBRMaterial* pbr_material;
-
-
 	Application( int window_width, int window_height, SDL_Window* window );
 
 	//main functions

@@ -2,7 +2,7 @@
 
 Light::Light()
 {
-	position.set(50.0, 50.0, 00.0);
+	position.set(20.0f, 20.0f, 10.0f);
 
 	diffuse.set(1.0f, 1.0f, 1.0f);
 	specular.set(1.0f, 1.0f, 1.0f);
