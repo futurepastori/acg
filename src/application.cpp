@@ -46,8 +46,8 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	camera->setPerspective(45.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
 	// Scene Nodes
-	SceneNode* sky_node = new SceneNode("Skybox");
-	SceneNode* lantern_node = new SceneNode("PBR");
+	sky_node = new SceneNode("Skybox");
+	lantern_node = new SceneNode("PBR");
 	lantern_node->model.scale(0.2, 0.2, 0.2);
 	lantern_node->model.translate(0, -20, 0);
 
@@ -63,17 +63,20 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	lantern_node->mesh = lantern;
 
 	// Materials
+
 	StandardMaterial* sky_material = new SkyboxMaterial();
 	PBRMaterial* pbr_material = new PBRMaterial();
 	sky_node->material = sky_material;
 
 	// Textures
-	HDRE* hdre = HDRE::Get("data/environments/vondelpark.hdre");
+	current_sky_texture = 0;
+
+	HDRE* hdre = HDRE::Get(sky_textures[current_sky_texture]);
 	Texture* texture_hdre = new Texture();
 	unsigned int LEVEL = 0;
 	texture_hdre->cubemapFromHDRE(hdre, LEVEL);
 
-	pbr_material->setTextures();
+	pbr_material->setTextures(sky_textures[current_sky_texture]);
 
 	sky_material->texture = texture_hdre;
 	lantern_node->material = pbr_material;
@@ -164,7 +167,26 @@ void Application::update(double seconds_elapsed)
 
 void Application::renderInMenu()
 {
-	
+	static const char* current_item = NULL;
+
+	if (ImGui::BeginCombo("sky", current_item))
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(sky_textures); n++)
+		{
+			bool is_selected = (current_item == sky_textures[n]);
+			if (ImGui::Selectable(sky_textures[n], is_selected)) {
+				current_item = sky_textures[n];
+
+				HDRE* new_hdre = HDRE::Get(sky_textures[n]);
+				sky_node->material->texture->cubemapFromHDRE(new_hdre, 0U);
+				lantern_node->material->texture->cubemapFromHDRE(new_hdre, 0U);
+			}
+			if (is_selected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
 }
 
 //Keyboard event handler (sync input)

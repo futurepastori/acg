@@ -61,6 +61,14 @@ PBRMaterial::PBRMaterial()
 	light = new Light();
 	roughness_factor = 1.0;
 	metalness_factor = 1.0;
+
+	with_direct_lighting = true;
+	with_indirect_lighting = true;
+	with_normal_map = true;
+	with_opacity_map = true;
+	with_occlusion_map = true;
+	with_gamma = true;
+	
 	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/pbr.fs");
 }
 
@@ -97,8 +105,8 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_metalness_map", metalness_map, 2);
 	shader->setUniform("u_roughness_map", roughness_map, 3);
 
-	if (texture_hdre) {
-		shader->setUniform("u_texture", texture_hdre, 4);
+	if (texture) {
+		shader->setUniform("u_texture", texture, 4);
 
 		shader->setUniform("u_texture_prem_0", texture_hdre_levels[0], 5);
 		shader->setUniform("u_texture_prem_1", texture_hdre_levels[1], 6);
@@ -114,7 +122,7 @@ void PBRMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_opacity_map", opacity_map, 13);
 }
 
-void PBRMaterial::setTextures()
+void PBRMaterial::setTextures(char* sky_texture)
 {
 	roughness_map = new Texture();
 	normal_map = new Texture();
@@ -125,13 +133,6 @@ void PBRMaterial::setTextures()
 	opacity_map = new Texture();
 	occlusion_map = new Texture();
 
-	with_direct_lighting = true;
-	with_indirect_lighting = true;
-	with_normal_map = true;
-	with_opacity_map = true;
-	with_occlusion_map = true;
-	with_gamma = true;
-
 	roughness_map->load("data/models/lantern/roughness.png");
 	normal_map->load("data/models/lantern/normal.png");
 	metalness_map->load("data/models/lantern/metalness.png");
@@ -140,11 +141,11 @@ void PBRMaterial::setTextures()
 	opacity_map->load("data/models/lantern/opacity.png");
 	occlusion_map->load("data/models/lantern/ao.png");
 
-	HDRE* hdre = HDRE::Get("data/environments/vondelpark.hdre");
+	HDRE* hdre = HDRE::Get(sky_texture);
 
-	texture_hdre = new Texture();
+	texture = new Texture();
 	unsigned int LEVEL = 0;
-	texture_hdre->cubemapFromHDRE(hdre, LEVEL);
+	texture->cubemapFromHDRE(hdre, LEVEL);
 
 	for (unsigned int i = 1; i < 6; i++)
 	{

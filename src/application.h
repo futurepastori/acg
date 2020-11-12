@@ -34,6 +34,16 @@ public:
 	static Camera* camera; //our GLOBAL camera
 	bool mouse_locked; //tells if the mouse is locked (not seen)
 
+	//more globals
+	int current_sky_texture;
+	char *sky_textures[3] = {
+		"data/environments/vondelpark.hdre",
+		"data/environments/studio.hdre",
+		"data/environments/panorama.hdre"
+	};
+	SceneNode* sky_node;
+	SceneNode* lantern_node;
+
 	Application( int window_width, int window_height, SDL_Window* window );
 
 	//main functions

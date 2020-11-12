@@ -60,14 +60,12 @@ public:
 	
 	bool with_gamma;
 
-	// We create a single texture_hdre texture
-	// and a collection of HDR cubemaps sorted by blur
+	// We create a collection of HDR cubemaps sorted by blur
 	// level (L2 slides, pp. 35)
-	Texture* texture_hdre;
 	Texture* texture_hdre_levels[5];
 
 	void setUniforms(Camera* camera, Matrix44 model);
-	void setTextures();
+	void setTextures(char* sky_texture);
 	void render(Mesh* mesh, Matrix44 model, Camera * camera);
 	void renderInMenu();
 };

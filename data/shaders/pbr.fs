@@ -277,7 +277,7 @@ void setIndirectLighting(out PBRMat material, out PBRVec vectors)
 	// diffuse IBL as the interpolation between a sample of the reflected color
 	// from the environment and the underlying diffuse color (L2 slides, pp. 43)
 	vec3 diffuse_sample = getReflectionColor(vectors.N, 1.0);
-	vec3 diffuse_color = material.c_diffuse;
+	vec3 diffuse_color = material.c_diffuse / PI;
 	vec3 diffuse_IBL = diffuse_sample * diffuse_color;
 
 	// specular IBL is taken from the sampling of the reflection value
@@ -326,5 +326,5 @@ void main()
 		color.xyz = linear_to_gamma(color.xyz);
 	}
 	
-	gl_FragColor = vec4(color.xyz, material.opacity);
+	gl_FragColor = vec4(color.xyz, pbr_material.opacity);
 }
