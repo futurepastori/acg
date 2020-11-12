@@ -31,7 +31,7 @@ N vec is computed using perturbNormal function provided with the **normal_map** 
 
 Next, the shader computes separately the direct and the indirect (environmental) lighting.
 
-4. Compute the **direct lighting** (`f = f_diffuse + f_specular`) with the formulas
+**4.** Compute the **direct lighting** (`f = f_diffuse + f_specular`) with the formulas
   * f_diffuse : with the diffuse colour / pi (_Lambertian diffusion equation_) that give us a constant diffusion in every diretion of the half sphere.
   * f_specular: this computation follows a more complex equation.
   
@@ -51,15 +51,18 @@ where the _k_ is:
 **TODO: afegir formula de D i de alpha**
 
 Where alpha is:
+...
 
-Finally, computes direct lighting as `diffuse + specular`. We also multiply the result by the dot product between n and l
+Finally, computes direct lighting as `diffuse + specular`. We also multiply the result by the dot product between n and l (**TODO: explicar why**)
 
-5. Compute **indirect lighting**
+5. Compute **indirect lighting** using Image Based Lighting (IBL)
+The total environment light will be the sum of the diffuse environment light and the specular environment light. Each of them will have two components too (Radiance term and brdf term), from the _Split Sum_ approximation of the rendering equation. 
 
-* Compute LUT_map -- **TODO**: VICTOR EXPLICAR BÉ
+**TODO:(Equation de Split Sume)**
 
-* Compute diffuse IBL
-* Compute specular IBL (from LUT map)
+ * diffuse IBL: we compute the radiance term using _getReflectionColor_ with the normal and roughness = 1, as it will be completely diffuse. The other term, as it is the diffuse component, will be simply the _albedo diffuse_ / PI (from the diffuse term of the BRDF)
+ 
+ * specular IBL: radiance term is
 * Compute IBL color (diffuse IBL + specular IBL)
 
 6. get Pixel color: get final color by adding IBL to the direct lighting (final_color = direct lighting + indirect lighting)
