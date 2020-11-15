@@ -55,8 +55,8 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	node->mesh = mesh;
 
 	// Loading the volume
-	Volume* volume = new Volume(32, 32, 32);
-	volume->loadPVM("data/volumes/Orange.pvm");
+	Volume* volume = new Volume();
+	volume->loadPVM("data/volumes/CT-Abdomen.pvm");
 
 	// Creating a 3D texture and assigning the volume
 	Texture* texture = new Texture();
