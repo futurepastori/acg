@@ -45,41 +45,30 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	camera->lookAt(Vector3(-5.f, 1.5f, 10.f), Vector3(0.f, 0.0f, 0.f), Vector3(0.f, 1.f, 0.f));
 	camera->setPerspective(45.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
-	// Scene Nodes
-	sky_node = new SceneNode("Skybox");
-	lantern_node = new SceneNode("PBR");
-	lantern_node->model.scale(0.2, 0.2, 0.2);
-	lantern_node->model.translate(0, -20, 0);
+	// Initialize Node for Ray Marching
+	SceneNode* node = new SceneNode("Ray-Marching Node");
+	node_list.push_back(node);
 
-	node_list.push_back(sky_node);
-	node_list.push_back(lantern_node);
+	// Creating a cube mesh as auxiliary geometry for the render
+	Mesh* mesh = new Mesh();
+	mesh->createCube();
+	node->mesh = mesh;
 
-	// Meshes
-	Mesh* box = Mesh::Get("data/meshes/box.ASE");
-	Mesh* helmet = Mesh::Get("data/models/helmet/helmet.obj");
-	Mesh* lantern = Mesh::Get("data/models/lantern/lantern.obj");
+	// Loading the volume
+	Volume* volume = new Volume(32, 32, 32);
+	volume->loadPVM("data/volumes/Orange.pvm");
 
-	sky_node->mesh = box;
-	lantern_node->mesh = lantern;
+	// Creating a 3D texture and assigning the volume
+	Texture* texture = new Texture();
+	texture->create3DFromVolume(volume);
 
-	// Materials
-
-	StandardMaterial* sky_material = new SkyboxMaterial();
-	PBRMaterial* pbr_material = new PBRMaterial();
-	sky_node->material = sky_material;
-
-	// Textures
-	current_sky_texture = 0;
-
-	HDRE* hdre = HDRE::Get(sky_textures[current_sky_texture]);
-	Texture* texture_hdre = new Texture();
-	unsigned int LEVEL = 0;
-	texture_hdre->cubemapFromHDRE(hdre, LEVEL);
-
-	pbr_material->setTextures(sky_textures[current_sky_texture]);
-
-	sky_material->texture = texture_hdre;
-	lantern_node->material = pbr_material;
+	// Creating a VolumeMaterial instance and assigning
+	// the 3D texture with the volume attached
+	VolumeMaterial* material = new VolumeMaterial();
+	material->texture = texture;
+	
+	// Et voilà !
+	node->material = material;
 
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 }
@@ -167,26 +156,6 @@ void Application::update(double seconds_elapsed)
 
 void Application::renderInMenu()
 {
-	static const char* current_item = NULL;
-
-	if (ImGui::BeginCombo("sky", current_item))
-	{
-		for (int n = 0; n < IM_ARRAYSIZE(sky_textures); n++)
-		{
-			bool is_selected = (current_item == sky_textures[n]);
-			if (ImGui::Selectable(sky_textures[n], is_selected)) {
-				current_item = sky_textures[n];
-
-				HDRE* new_hdre = HDRE::Get(sky_textures[n]);
-				sky_node->material->texture->cubemapFromHDRE(new_hdre, 0U);
-				lantern_node->material->texture->cubemapFromHDRE(new_hdre, 0U);
-			}
-			if (is_selected) {
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
 }
 
 //Keyboard event handler (sync input)
