@@ -73,7 +73,7 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_time", Application::instance->time);
 
 	shader->setUniform("u_color", color);
-	shader->setUniform("step_modul", step);
+	shader->setUniform("ray_step", step);
 	//shader->setUniform("u_ray_origin", model.inverse() * camera->eye);
 
 	if (texture)

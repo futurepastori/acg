@@ -5,7 +5,7 @@ varying vec3 v_position;
 
 uniform vec3 u_camera_position;
 uniform vec3 u_ray_origin;
-uniform float step_modul;
+uniform float ray_step;
 
 uniform vec4 u_color;
 // Texture is in 3D
@@ -21,7 +21,7 @@ void main()
 	vec3 ray_origin = u_camera_position; // ray origin
 
 	vec3 ray_dir = normalize(current_sample - ray_origin); // ray direction
-	vec3 step_vec = ray_dir * step_modul; // Step vector
+	vec3 step_vec = ray_dir * ray_step; // Step vector
 
 	vec4 final_color = vec4(0.0);
 
@@ -46,9 +46,9 @@ void main()
 		// EARLY TERMINATION
 		// Are we checking outside the limits of the volume's planes?
 		// Remember that we are in a normalized space in [0, 1]
-		if (current_sample.x > PLANE_LIMIT) break;		
-		if (current_sample.y > PLANE_LIMIT) break;		
-		if (current_sample.z > PLANE_LIMIT) break;
+		if (current_sample.x > PLANE_LIMIT || current_sample.x < -PLANE_LIMIT) break;		
+		if (current_sample.y > PLANE_LIMIT || current_sample.y < -PLANE_LIMIT) break;		
+		if (current_sample.z > PLANE_LIMIT || current_sample.z < -PLANE_LIMIT) break;
 		// when final color alpha reaches 1 --> the color will not change anymore.
 		if (final_color.a >= 1) break;
 
