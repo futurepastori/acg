@@ -18,17 +18,17 @@ void main()
 {
 	// 1. RAY SETUP
 	vec3 current_sample = v_position; // first sample pos
-	vec3 eye_position = u_camera_position; // ray origin
+	vec3 ray_origin = u_camera_position; // ray origin
 
-	vec3 ray = normalize(current_sample - u_camera_position); // ray direction
-	vec3 step_vec = ray * step_modul; // Step vector
+	vec3 ray_dir = normalize(current_sample - ray_origin); // ray direction
+	vec3 step_vec = ray_dir * step_modul; // Step vector
 
 	vec4 final_color = vec4(0.0);
 
 	for (int i=1; i < MAX_STEPS; i++)
 	{
 		// 2. VOLUME SAMPLING
-		current_sample = clamp(current_sample, 0.01, 0.99);
+		//current_sample = clamp(current_sample, 0.01, 0.99);
 		float tex_value = texture3D(u_texture, current_sample).x;
 
 		// 3. CLASSIFICATION
@@ -37,7 +37,8 @@ void main()
 		
 		// 4. COMPOSITION
 		float step_length = length(step_vec);
-		final_color += step_length * (1 - sample_color.a) * sample_color;
+		// TODO: sample color for final color alpha
+		final_color += step_length * (1 - final_color.a) * sample_color;
 
 		// 5. NEXT SAMPLE
 		current_sample += step_vec;
