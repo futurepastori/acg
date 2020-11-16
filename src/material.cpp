@@ -54,6 +54,59 @@ void StandardMaterial::renderInMenu()
 	ImGui::ColorEdit3("Color", (float*)&color);
 }
 
+VolumeMaterial::VolumeMaterial()
+{
+	color = vec4(1.f, 1.f, 1.f, 1.f);
+	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/marching.fs");
+}
+
+VolumeMaterial::~VolumeMaterial()
+{
+	
+}
+
+void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
+{
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	shader->setUniform("u_model", model);
+	shader->setUniform("u_time", Application::instance->time);
+
+	shader->setUniform("u_color", color);
+
+	shader->setUniform("u_ray_origin", model.inverse() * camera->eye);
+
+	if (texture)
+		shader->setUniform("u_texture", texture);
+}
+
+void VolumeMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
+{
+	//set flags
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
+	if (mesh && shader)
+	{
+		//enable shader
+		shader->enable();
+
+		//upload uniforms
+		setUniforms(camera, model);
+
+		//do the draw call
+		mesh->render(GL_TRIANGLES);
+
+		//disable shader
+		shader->disable();
+	}
+}
+
+void VolumeMaterial::renderInMenu()
+{
+
+}
+
 PBRMaterial::PBRMaterial()
 {
 	color = vec4(1.f, 1.f, 1.f, 1.f);
