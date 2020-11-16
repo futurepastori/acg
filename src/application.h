@@ -30,6 +30,8 @@ public:
 	bool must_exit;
 	bool render_debug;
 
+	float step;
+
 	//some vars
 	static Camera* camera; //our GLOBAL camera
 	bool mouse_locked; //tells if the mouse is locked (not seen)
