@@ -2,12 +2,14 @@
 #define PLANE_LIMIT 1.0
 
 varying vec3 v_position;
+varying vec3 v_world_position;
 
 uniform vec3 u_camera_position;
 uniform vec3 u_ray_origin;
-uniform float ray_step;
-
+uniform float u_ray_step;
 uniform vec4 u_color;
+uniform mat4 u_model;
+
 // Texture is in 3D
 // TODO: We will also have to sample for a color texture map,
 // which will be a regular sampler2D. For now, we return flat.
@@ -18,26 +20,26 @@ void main()
 {
 	// 1. RAY SETUP
 	vec3 current_sample = v_position; // first sample pos
+
 	vec3 ray_origin = u_camera_position; // ray origin
 
 	vec3 ray_dir = normalize(current_sample - ray_origin); // ray direction
-	vec3 step_vec = ray_dir * ray_step; // Step vector
+	vec3 step_vec = ray_dir * u_ray_step; // Step vector
 
 	vec4 final_color = vec4(0.0);
 
 	for (int i=1; i < MAX_STEPS; i++)
 	{
 		// 2. VOLUME SAMPLING
-		//current_sample = clamp(current_sample, 0.01, 0.99);
-		float tex_value = texture3D(u_texture, current_sample).x;
+
+		//vec3 tex_current_sample = (u_model * vec4(current_sample, 1.0) ).xyz;
+		float density = texture3D(u_texture, (current_sample+1)/2).x;
 
 		// 3. CLASSIFICATION
-		// TODO: applies density function
-		vec4 sample_color = vec4(tex_value);
+		vec4 sample_color = vec4(density);
 		
 		// 4. COMPOSITION
 		float step_length = length(step_vec);
-		// TODO: sample color for final color alpha
 		final_color += step_length * (1 - final_color.a) * sample_color;
 
 		// 5. NEXT SAMPLE
