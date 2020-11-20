@@ -73,8 +73,7 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_time", Application::instance->time);
 
 	shader->setUniform("u_color", color);
-
-	shader->setUniform("u_ray_origin", model.inverse() * camera->eye);
+	shader->setUniform("u_ray_step", step);
 
 	if (texture)
 		shader->setUniform("u_texture", texture);
@@ -104,7 +103,7 @@ void VolumeMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 
 void VolumeMaterial::renderInMenu()
 {
-
+	ImGui::DragFloat("ray step", (float*)&step, 0.01, 0.0, 1.0);
 }
 
 PBRMaterial::PBRMaterial()

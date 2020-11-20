@@ -35,7 +35,8 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	time = 0.0f;
 	elapsed_time = 0.0f;
 	mouse_locked = false;
-	
+	step = 0.01;
+
 	// OpenGL flags
 	glEnable( GL_CULL_FACE ); //render both sides of every triangle
 	glEnable( GL_DEPTH_TEST ); //check the occlusions using the Z buffer
@@ -65,6 +66,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	// Creating a VolumeMaterial instance and assigning
 	// the 3D texture with the volume attached
 	VolumeMaterial* material = new VolumeMaterial();
+	material->step = step;
 	material->texture = texture;
 	
 	// Et voilà !

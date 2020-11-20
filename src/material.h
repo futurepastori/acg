@@ -32,6 +32,9 @@ public:
 
 class VolumeMaterial : public StandardMaterial {
 public:
+	
+	float step;
+
 	VolumeMaterial();
 	~VolumeMaterial();
 
