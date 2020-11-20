@@ -14,6 +14,7 @@ uniform mat4 u_model;
 // TODO: We will also have to sample for a color texture map,
 // which will be a regular sampler2D. For now, we return flat.
 uniform sampler3D u_texture;
+uniform sampler2D u_noise_texture;
 
 
 void main()
@@ -26,13 +27,16 @@ void main()
 	vec3 ray_dir = normalize(current_sample - ray_origin); // ray direction
 	vec3 step_vec = ray_dir * u_ray_step; // Step vector
 
+	// 1.5 JITTERING
+	vec2 frag_coord = gl_FragCoord.xy; // getting coordinates from fragment instead of sampling from vec
+	float jittering = texture2D(u_noise_texture, frag_coord).x;	// getting only one channel as float
+	current_sample += step_vec * jittering;	// modulate the step vector by the deviation of the jittering
+	
 	vec4 final_color = vec4(0.0);
 
 	for (int i=1; i < MAX_STEPS; i++)
 	{
 		// 2. VOLUME SAMPLING
-
-		//vec3 tex_current_sample = (u_model * vec4(current_sample, 1.0) ).xyz;
 		float density = texture3D(u_texture, (current_sample+1)/2).x;
 
 		// 3. CLASSIFICATION

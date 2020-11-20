@@ -35,7 +35,7 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	time = 0.0f;
 	elapsed_time = 0.0f;
 	mouse_locked = false;
-	step = 0.01;
+	step = 0.02;
 
 	// OpenGL flags
 	glEnable( GL_CULL_FACE ); //render both sides of every triangle
@@ -69,8 +69,13 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	material->step = step;
 	material->texture = texture;
 	
-	// Et voilà !
+	// Rescaling model by its dimensions times its scale factor per axis
 	node->material = material;
+	node->model.setScale(
+		(volume->width*volume->widthSpacing)/5,
+		(volume->height*volume->heightSpacing)/5,
+		(volume->depth*volume->depthSpacing)/5
+	);
 
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
 }

@@ -4,3 +4,4 @@ visualstudio15/VS2015/Debug
 framework_debug.exe
 framework_debug.idb
 *.pdb
+*.ipdb
