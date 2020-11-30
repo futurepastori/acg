@@ -57,7 +57,11 @@ void StandardMaterial::renderInMenu()
 VolumeMaterial::VolumeMaterial()
 {
 	color = vec4(1.f, 1.f, 1.f, 1.f);
-	shader = Shader::Get("data/shaders/basic.vs", "data/shaders/marching.fs");
+	shader = Shader::Get("data/shaders/marching.vs", "data/shaders/marching.fs");
+
+	clip_plane_x = -1.0;
+	clip_plane_y = -1.0;
+	clip_plane_z = -1.0;
 }
 
 VolumeMaterial::~VolumeMaterial()
@@ -75,6 +79,10 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_color", color);
 	shader->setUniform("u_ray_step", step);
 
+	shader->setUniform("u_clip_plane_x", clip_plane_x);
+	shader->setUniform("u_clip_plane_y", clip_plane_y);
+	shader->setUniform("u_clip_plane_z", clip_plane_z);
+
 	shader->setUniform("u_noise_texture", Texture::Get("data/textures/randnoise.png"));
 	shader->setUniform("u_transfer_function", Texture::Get("data/textures/fireLUT.png"));
 
@@ -84,9 +92,6 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 
 void VolumeMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 {
-	//set flags
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
 
 	if (mesh && shader)
 	{
@@ -107,6 +112,10 @@ void VolumeMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 void VolumeMaterial::renderInMenu()
 {
 	ImGui::DragFloat("ray step", (float*)&step, 0.01, 0.0, 1.0);
+
+	ImGui::DragFloat("clip plane x", (float*)&clip_plane_x, 0.01, -1.0, 1.0);
+	ImGui::DragFloat("clip plane y", (float*)&clip_plane_y, 0.01, -1.0, 1.0);
+	ImGui::DragFloat("clip plane z", (float*)&clip_plane_z, 0.01, -1.0, 1.0);
 }
 
 PBRMaterial::PBRMaterial()

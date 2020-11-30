@@ -1,4 +1,4 @@
-#define MAX_STEPS 100
+#define MAX_STEPS 250
 #define PLANE_LIMIT 1.0
 
 varying vec3 v_position;
@@ -17,9 +17,17 @@ uniform sampler3D u_texture;
 uniform sampler2D u_noise_texture;
 uniform sampler2D u_transfer_function;
 
+// Skip coordinates (where )
+uniform float u_clip_plane_x;
+uniform float u_clip_plane_y;
+uniform float u_clip_plane_z;
+
 
 void main()
 {
+	//0. DUMMY VARIABLES
+	vec3 clip_plane = vec3(u_clip_plane_x, u_clip_plane_y, u_clip_plane_z);
+	
 	// 1. RAY SETUP
 	vec3 current_sample = v_position; // first sample pos
 
@@ -33,18 +41,36 @@ void main()
 	float jittering = texture2D(u_noise_texture, frag_coord).x;	// getting only one channel as float
 	current_sample += step_vec * jittering;	// modulate the step vector by the deviation of the jittering
 	
+	float step_length = length(step_vec);
+
 	vec4 final_color = vec4(0.0);
 
 	for (int i=1; i < MAX_STEPS; i++)
 	{
+		if (current_sample.x < clip_plane.x) break;
+		if (current_sample.y < clip_plane.y) break;
+		if (current_sample.z < clip_plane.z) break;
+
 		// 2. VOLUME SAMPLING
-		float density = texture3D(u_texture, (current_sample+1)/2).x;
+		float density = texture3D(u_texture, (current_sample+1)/2).r;
 
 		// 3. CLASSIFICATION
-		vec4 sample_color = texture2D(u_transfer_function, vec2(density, 1.0));
+		vec4 sample_color = texture2D(u_transfer_function, vec2(2*density, 1.0));
+		//vec4 sample_color = vec4(0.0);
+		
+		//if (density < 0.02) {
+		//	sample_color = vec4(0.0);
+		//} else if (density < 0.3) {
+		//	sample_color = vec4(1.0, 0.0, 0.0, 0.03);
+		//} else if (density < 0.5) {
+		//	sample_color = vec4(0.0, 1.0, 0.0, 0.55);
+		//} else {
+		//	sample_color = vec4(1.0, 1.0, 1.0, 1.0);
+		//}
+
+		//sample_color = vec4(1.0, 1.0, 1.0, 0.88);
 
 		// 4. COMPOSITION
-		float step_length = length(step_vec);
 		final_color += step_length * (1-final_color.a) * sample_color;
 
 		// 5. NEXT SAMPLE

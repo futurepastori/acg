@@ -35,6 +35,10 @@ public:
 	
 	float step;
 
+	float clip_plane_x;
+	float clip_plane_y;
+	float clip_plane_z;
+
 	VolumeMaterial();
 	~VolumeMaterial();
 
