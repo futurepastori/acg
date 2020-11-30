@@ -15,6 +15,7 @@ uniform mat4 u_model;
 // which will be a regular sampler2D. For now, we return flat.
 uniform sampler3D u_texture;
 uniform sampler2D u_noise_texture;
+uniform sampler2D u_transfer_function;
 
 
 void main()
@@ -40,11 +41,11 @@ void main()
 		float density = texture3D(u_texture, (current_sample+1)/2).x;
 
 		// 3. CLASSIFICATION
-		vec4 sample_color = vec4(density);
-		
+		vec4 sample_color = texture2D(u_transfer_function, vec2(density, 1.0));
+
 		// 4. COMPOSITION
 		float step_length = length(step_vec);
-		final_color += step_length * (1 - final_color.a) * sample_color;
+		final_color += step_length * (1-final_color.a) * sample_color;
 
 		// 5. NEXT SAMPLE
 		current_sample += step_vec;

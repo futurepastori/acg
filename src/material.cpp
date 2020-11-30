@@ -74,7 +74,9 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 
 	shader->setUniform("u_color", color);
 	shader->setUniform("u_ray_step", step);
+
 	shader->setUniform("u_noise_texture", Texture::Get("data/textures/randnoise.png"));
+	shader->setUniform("u_transfer_function", Texture::Get("data/textures/fireLUT.png"));
 
 	if (texture)
 		shader->setUniform("u_texture", texture);
