@@ -41,6 +41,8 @@ public:
 	float clip_plane_y;
 	float clip_plane_z;
 
+	Light* light = NULL;
+
 	VolumeMaterial();
 	~VolumeMaterial();
 

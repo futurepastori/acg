@@ -66,6 +66,8 @@ VolumeMaterial::VolumeMaterial()
 	clip_plane_z = -1.0;
 
 	threshold = 0.6;
+
+	light = new Light();
 }
 
 VolumeMaterial::~VolumeMaterial()
@@ -80,6 +82,12 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_model", model);
 	shader->setUniform("u_time", Application::instance->time);
 
+	Matrix44 invModel = model;
+	invModel.inverse();
+	shader->setUniform("u_local_camera_position", invModel * camera->eye);
+	
+	shader->setUniform("u_light_position", light->position);
+
 	shader->setUniform("u_color", color);
 	shader->setUniform("apply_jittering", jittering);
 	shader->setUniform("u_ray_step", step);
@@ -90,7 +98,7 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_clip_plane_z", clip_plane_z);
 
 	shader->setUniform("u_noise_texture", Texture::Get("data/textures/randnoise.png"));
-	shader->setUniform("u_transfer_function", Texture::Get("data/textures/fireLUT.png"));
+	shader->setUniform("u_transfer_function", Texture::Get("data/textures/volumeLUT.png"));
 
 	if (texture)
 		shader->setUniform("u_texture", texture);
@@ -98,6 +106,13 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 
 void VolumeMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 {
+	glEnable(GL_DEPTH_TEST);
+
+	glEnable(GL_BLEND);
+	// FIXME: No estic molt segur d'això però soluciona part del problema
+	// que fa que es vegi part posterior del shader o "discs" al vidre
+	glEnable(GL_CULL_FACE);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	if (mesh && shader)
 	{
@@ -113,11 +128,15 @@ void VolumeMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 		//disable shader
 		shader->disable();
 	}
+
+	glDisable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
 }
 
 void VolumeMaterial::renderInMenu()
 {
 	ImGui::Checkbox("Jittering", &jittering);
+	ImGui::DragFloat("iso threshold", (float*)&threshold, 0.01, 0.01, 0.99);
 	ImGui::DragFloat("ray step", (float*)&step, 0.01, 0.0, 1.0);
 
 	ImGui::DragFloat("clip plane x", (float*)&clip_plane_x, 0.01, -1.0, 1.0);

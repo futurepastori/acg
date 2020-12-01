@@ -72,9 +72,9 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	// Rescaling model by its dimensions times its scale factor per axis
 	node->material = material;
 	node->model.setScale(
-		(volume->width*volume->widthSpacing)/5,
-		(volume->height*volume->heightSpacing)/5,
-		(volume->depth*volume->depthSpacing)/5
+		(volume->width*volume->widthSpacing/5),
+		(volume->height*volume->heightSpacing/5),
+		(volume->depth*volume->depthSpacing/5)
 	);
 
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
