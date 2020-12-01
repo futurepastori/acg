@@ -3,6 +3,7 @@
 
 varying vec3 v_position;
 varying vec3 v_world_position;
+varying vec3 v_local_camera_position;
 
 uniform vec3 u_camera_position;
 
@@ -37,7 +38,7 @@ void main()
 	// 1. RAY SETUP
 	vec3 current_sample = v_position; // first sample pos
 
-	vec3 ray_origin = u_camera_position; // ray origin
+	vec3 ray_origin = v_local_camera_position; // ray origin
 
 	vec3 ray_dir = normalize(current_sample - ray_origin); // ray direction
 	vec3 step_vec = ray_dir * u_ray_step; // Step vector

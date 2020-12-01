@@ -81,10 +81,6 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_camera_position", camera->eye);
 	shader->setUniform("u_model", model);
 	shader->setUniform("u_time", Application::instance->time);
-
-	Matrix44 invModel = model;
-	invModel.inverse();
-	shader->setUniform("u_local_camera_position", invModel * camera->eye);
 	
 	shader->setUniform("u_light_position", light->position);
 
@@ -98,7 +94,7 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_clip_plane_z", clip_plane_z);
 
 	shader->setUniform("u_noise_texture", Texture::Get("data/textures/randnoise.png"));
-	shader->setUniform("u_transfer_function", Texture::Get("data/textures/volumeLUT.png"));
+	shader->setUniform("u_transfer_function", Texture::Get("data/textures/rainbowLUT.png"));
 
 	if (texture)
 		shader->setUniform("u_texture", texture);
@@ -137,7 +133,7 @@ void VolumeMaterial::renderInMenu()
 {
 	ImGui::Checkbox("Jittering", &jittering);
 	ImGui::DragFloat("iso threshold", (float*)&threshold, 0.01, 0.01, 0.99);
-	ImGui::DragFloat("ray step", (float*)&step, 0.01, 0.0, 1.0);
+	ImGui::DragFloat("ray step", (float*)&step, 0.001, 0.001, 0.5);
 
 	ImGui::DragFloat("clip plane x", (float*)&clip_plane_x, 0.01, -1.0, 1.0);
 	ImGui::DragFloat("clip plane y", (float*)&clip_plane_y, 0.01, -1.0, 1.0);
