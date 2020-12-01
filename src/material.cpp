@@ -59,6 +59,8 @@ VolumeMaterial::VolumeMaterial()
 	color = vec4(1.f, 1.f, 1.f, 1.f);
 	shader = Shader::Get("data/shaders/marching.vs", "data/shaders/marching.fs");
 
+	jittering = true;
+
 	clip_plane_x = -1.0;
 	clip_plane_y = -1.0;
 	clip_plane_z = -1.0;
@@ -79,6 +81,7 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_time", Application::instance->time);
 
 	shader->setUniform("u_color", color);
+	shader->setUniform("apply_jittering", jittering);
 	shader->setUniform("u_ray_step", step);
 	shader->setUniform("u_threshold", threshold);
 
@@ -114,6 +117,7 @@ void VolumeMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 
 void VolumeMaterial::renderInMenu()
 {
+	ImGui::Checkbox("Jittering", &jittering);
 	ImGui::DragFloat("ray step", (float*)&step, 0.01, 0.0, 1.0);
 
 	ImGui::DragFloat("clip plane x", (float*)&clip_plane_x, 0.01, -1.0, 1.0);

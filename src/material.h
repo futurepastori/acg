@@ -33,6 +33,7 @@ public:
 class VolumeMaterial : public StandardMaterial {
 public:
 	
+	bool jittering;
 	float step;
 	float threshold;
 
