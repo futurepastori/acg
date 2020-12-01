@@ -34,6 +34,7 @@ class VolumeMaterial : public StandardMaterial {
 public:
 	
 	float step;
+	float threshold;
 
 	float clip_plane_x;
 	float clip_plane_y;

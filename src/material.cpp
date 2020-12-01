@@ -62,6 +62,8 @@ VolumeMaterial::VolumeMaterial()
 	clip_plane_x = -1.0;
 	clip_plane_y = -1.0;
 	clip_plane_z = -1.0;
+
+	threshold = 0.6;
 }
 
 VolumeMaterial::~VolumeMaterial()
@@ -78,6 +80,7 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 
 	shader->setUniform("u_color", color);
 	shader->setUniform("u_ray_step", step);
+	shader->setUniform("u_threshold", threshold);
 
 	shader->setUniform("u_clip_plane_x", clip_plane_x);
 	shader->setUniform("u_clip_plane_y", clip_plane_y);

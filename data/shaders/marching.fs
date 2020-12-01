@@ -7,8 +7,11 @@ varying vec3 v_world_position;
 uniform vec3 u_camera_position;
 uniform vec3 u_ray_origin;
 uniform float u_ray_step;
+uniform float u_threshold;
+
 uniform vec4 u_color;
 uniform mat4 u_model;
+
 
 // Texture is in 3D
 // TODO: We will also have to sample for a color texture map,
@@ -42,9 +45,8 @@ void main()
 	current_sample += step_vec * jittering;	// modulate the step vector by the deviation of the jittering
 	
 	float step_length = length(step_vec);
-
-	vec4 final_color = vec4(0.0);
-
+	vec4 final_color = vec4(0.0, 0.0, 0.0, 0.0);
+	
 	for (int i=1; i < MAX_STEPS; i++)
 	{
 		if (current_sample.x < clip_plane.x) break;
@@ -70,6 +72,27 @@ void main()
 
 		//sample_color = vec4(1.0, 1.0, 1.0, 0.88);
 
+		if(density > u_threshold){
+			
+			// GRADIENT
+			vec3 pos_x = (current_sample.x + step_vec, current_sample.y, current_sample.z);
+			vec3 neg_x = (current_sample.x - step_vec, current_sample.y, current_sample.z);
+			float grad_x = (texture3D(u_texture, pos_x) - texture3D(u_texture, neg_x)) / (2*step_vec);
+
+			vec3 pos_y = (current_sample.x, current_sample.y + step_vec, current_sample.z);
+			vec3 neg_y = (current_sample.x, current_sample.y - step_vec, current_sample.z);
+			float grad_y = (texture3D(u_texture, pos_y) - texture3D(u_texture, neg_y)) / (2*step_vec);
+
+			vec3 pos_z = (current_sample.x, current_sample.y, current_sample.z + step_vec);
+			vec3 neg_z = (current_sample.x, current_sample.y, current_sample.z - step_vec);
+			float grad_z = (texture3D(u_texture, pos_z) - texture3D(u_texture, neg_z)) / (2*step_vec);
+
+			vec3 gradient = (grad_x, grad_y, grad_z);
+
+			// After this step, alpha is 1
+			final_color.a = 1;
+		}
+
 		// 4. COMPOSITION
 		final_color += step_length * (1-final_color.a) * sample_color;
 
@@ -84,7 +107,6 @@ void main()
 		if (current_sample.z > PLANE_LIMIT || current_sample.z < -PLANE_LIMIT) break;
 		// when final color alpha reaches 1 --> the color will not change anymore.
 		if (final_color.a >= 1) break;
-
 	}
 
 	gl_FragColor = final_color;
