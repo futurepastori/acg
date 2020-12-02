@@ -93,7 +93,7 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("u_clip_plane_y", clip_plane_y);
 	shader->setUniform("u_clip_plane_z", clip_plane_z);
 
-	shader->setUniform("u_noise_texture", Texture::Get("data/textures/randnoise.png"));
+	shader->setUniform("u_noise_texture", Texture::Get("data/textures/blueNoise.png"));
 	shader->setUniform("u_transfer_function", Texture::Get("data/textures/gradLUT.png"));
 
 	if (texture)

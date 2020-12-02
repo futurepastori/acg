@@ -28,41 +28,51 @@ uniform float u_clip_plane_z;
 float jittering()
 {
 	vec2 frag_coord = gl_FragCoord.xy; // getting coordinates from fragment instead of sampling from vec
-	float jittering = texture2D(u_noise_texture, frag_coord*0.01).x;// getting only one channel as float
+	float jittering = fract(sin(dot(frag_coord,vec2(12.9898,78.233)))*43758.5453123);
 	return jittering;
 }
 
-vec3 computeGradient( vec3 current_sample, float step_length )
+vec3 computeGradient( vec3 current, float step_length )
 {
 	// GRADIENT
-	vec3 pos_x = vec3(current_sample.x + step_length, current_sample.y, current_sample.z);
-	vec3 neg_x = vec3(current_sample.x - step_length, current_sample.y, current_sample.z);
-	float grad_x = (texture3D(u_texture, pos_x).r - texture3D(u_texture, neg_x).r) / (2*step_length);
-
-	vec3 pos_y = vec3(current_sample.x, current_sample.y + step_length, current_sample.z);
-	vec3 neg_y = vec3(current_sample.x, current_sample.y - step_length, current_sample.z);
-	float grad_y = (texture3D(u_texture, pos_y).r - texture3D(u_texture, neg_y).r) / (2*step_length);
-
-	vec3 pos_z = vec3(current_sample.x, current_sample.y, current_sample.z + step_length);
-	vec3 neg_z = vec3(current_sample.x, current_sample.y, current_sample.z - step_length);
-	float grad_z = (texture3D(u_texture, pos_z).r - texture3D(u_texture, neg_z).r) / (2*step_length);
-
+	vec3 pos_x = vec3(current.x + step_length, current.y, current.z);
+	vec3 neg_x = vec3(current.x - step_length, current.y, current.z);
+	float grad_x = (texture3D(u_texture, pos_x).r - texture3D(u_texture, neg_x).r) / (2.0*step_length);
+ 
+	vec3 pos_y = vec3(current.x, current.y + step_length, current.z);
+	vec3 neg_y = vec3(current.x, current.y - step_length, current.z);
+	float grad_y = (texture3D(u_texture, pos_y).r - texture3D(u_texture, neg_y).r) / (2.0*step_length);
+ 
+	vec3 pos_z = vec3(current.x, current.y, current.z + step_length);
+	vec3 neg_z = vec3(current.x, current.y, current.z - step_length);
+	float grad_z = (texture3D(u_texture, pos_z).r - texture3D(u_texture, neg_z).r) / (2.0*step_length);
+ 
 	return vec3(grad_x, grad_y, grad_z);
 }
 
-void isoColor( inout vec4 final_color, vec4 sample_color, vec3 gradient )
+void isoColor( inout vec4 final_color, inout vec4 sample_color, vec3 gradient, vec3 current_sample )
 {
-	// Computes sample color to shade the isosurface
-	vec3 N = gradient;
-	// L : vector towards the light
-	vec3 L = normalize(u_light_position - (v_position+1.0/2.0));
-	float NdotL = clamp(dot(N,L), 0.01, 0.99);
-	sample_color.rgb *= NdotL;
-	sample_color.rgb *= sample_color.a;
+	//// Computes sample color to shade the isosurface
+	//vec3 N = normalize(gradient);
+	//// L : vector towards the light
+	//vec3 L = normalize(u_light_position - current_sample);
+	//float NdotL = normalize(dot(N,L)+1.0/(2.0));
+	//sample_color *= NdotL*vec4(1.0, 1.0, 1.0, 0.15)*0.15;
+	////sample_color.rgb *= sample_color.a;
+	//sample_color.a = 1.0;
+	//
+	////final_color += sample_color * (1 - final_color.a);
+	////final_color = vec4(sample_color, 1.0);
+	//final_color = sample_color;
 
-	//sample_color = (sample_color+1.0)/2.0;
+	vec3 L = normalize(u_light_position - current_sample);
+	vec3 N = normalize(gradient);
+	float NdotL = (dot(N, L) + 1.0) / 2.0;
 
-	final_color += sample_color * (1 - final_color.a);
+	sample_color.xyz *= vec3(NdotL);
+	sample_color.a = 1.0;
+
+	final_color += sample_color * (1.0 - final_color.a);
 }
 
 bool earlyTermination( vec3 current_sample , vec4 final_color)
@@ -105,26 +115,31 @@ void main()
 		if ((clip_plane.x*current_sample.x + clip_plane.y*current_sample.y + clip_plane.z*current_sample.z + clip_plane.w) > 0.0) 
 		{
 			current_sample += step_vec;
+			if (earlyTermination(current_sample, final_color)) break;
+
 			continue;
 		}
 
 		// 2. VOLUME SAMPLING
-		float density = texture3D(u_texture, (current_sample+1.0)/2.0).r;
+		vec3 local_sample = (current_sample + 1.0)/2.0;
+		float density = texture3D(u_texture, local_sample).r;
 
 		// 3. CLASSIFICATION
 		vec4 sample_color = texture2D(u_transfer_function, vec2(density, 1.0));
+		//vec4 sample_color = vec4(density);
 
 		// 4. COMPOSITION
 		sample_color.rgb *= sample_color.a;
 		final_color += step_length * (1-final_color.a) * sample_color;
 
+
 		if (density > u_threshold)
 		{	
-			vec3 gradient = computeGradient(current_sample, step_length);
-			isoColor(final_color, sample_color, gradient);
+			vec3 gradient = computeGradient(local_sample, step_length);
+			isoColor(final_color, sample_color, gradient, current_sample);
 			
 			// After this step, alpha is 1
-			final_color.a = 1;
+			//final_color.a = 1.0;
 		}
 
 		// 5. NEXT SAMPLE
@@ -132,8 +147,7 @@ void main()
 
 		// EARLY TERMINATION
 		if (earlyTermination(current_sample, final_color)) break;
-
 	}
 
-	gl_FragColor = final_color*2;
+	gl_FragColor = final_color;
 }
