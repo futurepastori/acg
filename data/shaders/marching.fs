@@ -110,8 +110,13 @@ void main()
 		float density = texture3D(u_texture, (current_sample+1.0)/2.0).r;
 
 		// 3. CLASSIFICATION
-		vec4 sample_color = texture2D(u_transfer_function, vec2(density, 1.0));
-		
+		//vec4 sample_color = texture2D(u_transfer_function, vec2(density, 1.0));
+		vec4 sample_color;
+		if (density < 0.01) sample_color = vec4(0.0);
+		else if (density < 0.24) sample_color = vec4(1.0, 0.0, 0.0, 0.3);
+		else if (density < 0.31) sample_color = vec4(0.0, 1.0, 0.0, 0.3);
+		else sample_color = vec4(1.0, 1.0, 1.0, 1.0);
+
 		// 4. COMPOSITION
 		sample_color.rgb *= sample_color.a;
 		final_color += step_length * (1-final_color.a) * sample_color;
