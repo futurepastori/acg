@@ -56,10 +56,12 @@ void isoColor( inout vec4 final_color, vec4 sample_color, vec3 gradient )
 	vec3 N = gradient;
 	// L : vector towards the light
 	vec3 L = normalize(u_light_position - v_position);
-			
 	float NdotL = clamp(dot(N,L), 0.01, 0.99);
-	sample_color.rgb = sample_color.rgb * NdotL;
+	sample_color.rgb *= NdotL;
 	sample_color.rgb *= sample_color.a;
+
+	sample_color = (sample_color+1.0)/2.0;
+
 	final_color += sample_color * (1 - final_color.a);
 }
 
