@@ -61,10 +61,6 @@ VolumeMaterial::VolumeMaterial()
 
 	jittering = true;
 
-	clip_plane_x = -1.0;
-	clip_plane_y = -1.0;
-	clip_plane_z = -1.0;
-
 	threshold = 0.6;
 
 	light = new Light();
@@ -88,10 +84,6 @@ void VolumeMaterial::setUniforms(Camera* camera, Matrix44 model)
 	shader->setUniform("apply_jittering", jittering);
 	shader->setUniform("u_ray_step", step);
 	shader->setUniform("u_threshold", threshold);
-
-	shader->setUniform("u_clip_plane_x", clip_plane_x);
-	shader->setUniform("u_clip_plane_y", clip_plane_y);
-	shader->setUniform("u_clip_plane_z", clip_plane_z);
 
 	shader->setUniform("u_noise_texture", Texture::Get("data/textures/blueNoise.png"));
 	shader->setUniform("u_transfer_function", Texture::Get("data/textures/gradLUT.png"));
@@ -132,12 +124,8 @@ void VolumeMaterial::render(Mesh* mesh, Matrix44 model, Camera* camera)
 void VolumeMaterial::renderInMenu()
 {
 	ImGui::Checkbox("Jittering", &jittering);
-	ImGui::DragFloat("iso threshold", (float*)&threshold, 0.01, 0.01, 0.99);
-	ImGui::DragFloat("ray step", (float*)&step, 0.001, 0.001, 0.5);
-
-	ImGui::DragFloat("clip plane x", (float*)&clip_plane_x, 0.01, -1.0, 1.0);
-	ImGui::DragFloat("clip plane y", (float*)&clip_plane_y, 0.01, -1.0, 1.0);
-	ImGui::DragFloat("clip plane z", (float*)&clip_plane_z, 0.01, -1.0, 1.0);
+	ImGui::DragFloat("Iso threshold", (float*)&threshold, 0.01, 0.01, 0.99);
+	ImGui::DragFloat("Ray step", (float*)&step, 0.001, 0.001, 0.5);
 }
 
 PBRMaterial::PBRMaterial()

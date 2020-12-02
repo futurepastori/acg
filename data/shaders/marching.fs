@@ -20,13 +20,9 @@ uniform sampler2D u_transfer_function;
 
 uniform vec3 u_light_position;
 
-// Skip coordinates (where )
-uniform float u_clip_plane_x;
-uniform float u_clip_plane_y;
-uniform float u_clip_plane_z;
-
 float jittering()
 {
+	//JITTERING
 	vec2 frag_coord = gl_FragCoord.xy; // getting coordinates from fragment instead of sampling from vec
 	float jittering = fract(sin(dot(frag_coord,vec2(12.9898,78.233)))*43758.5453123);
 	return jittering;
@@ -52,24 +48,15 @@ vec3 computeGradient( vec3 current, float step_length )
 
 void isoColor( inout vec4 final_color, inout vec4 sample_color, vec3 gradient, vec3 current_sample )
 {
-	//// Computes sample color to shade the isosurface
-	//vec3 N = normalize(gradient);
-	//// L : vector towards the light
-	//vec3 L = normalize(u_light_position - current_sample);
-	//float NdotL = normalize(dot(N,L)+1.0/(2.0));
-	//sample_color *= NdotL*vec4(1.0, 1.0, 1.0, 0.15)*0.15;
-	////sample_color.rgb *= sample_color.a;
-	//sample_color.a = 1.0;
-	//
-	////final_color += sample_color * (1 - final_color.a);
-	////final_color = vec4(sample_color, 1.0);
-	//final_color = sample_color;
-
+	// SHADING ISOSURFACE
+	// L : vector towards the light
 	vec3 L = normalize(u_light_position - current_sample);
+	// N : normal of the isosurface is the gradient
 	vec3 N = normalize(gradient);
 	float NdotL = (dot(N, L) + 1.0) / 2.0;
 
 	sample_color.xyz *= vec3(NdotL);
+	// isosurfaces are flat surfaces, after this step alpha must be zero
 	sample_color.a = 1.0;
 
 	final_color += sample_color * (1.0 - final_color.a);
@@ -101,7 +88,7 @@ void main()
 	vec3 ray_dir = normalize(current_sample - ray_origin); // ray direction
 	vec3 step_vec = ray_dir * u_ray_step; // Step vector
 
-	// 1.5 JITTERING
+	// Jittering
 	if(apply_jittering){
 		current_sample += step_vec * jittering();	// modulate the step vector by the deviation of the jittering
 	}
@@ -111,12 +98,11 @@ void main()
 	
 	for (int i=1; i < MAX_STEPS; i++)
 	{
-		// VOLUME CLIPPING
+		// Volume Clipping
 		if ((clip_plane.x*current_sample.x + clip_plane.y*current_sample.y + clip_plane.z*current_sample.z + clip_plane.w) > 0.0) 
 		{
 			current_sample += step_vec;
 			if (earlyTermination(current_sample, final_color)) break;
-
 			continue;
 		}
 
@@ -132,20 +118,17 @@ void main()
 		sample_color.rgb *= sample_color.a;
 		final_color += step_length * (1-final_color.a) * sample_color;
 
-
+		// Computing gradient and isosurfaces
 		if (density > u_threshold)
 		{	
 			vec3 gradient = computeGradient(local_sample, step_length);
 			isoColor(final_color, sample_color, gradient, current_sample);
-			
-			// After this step, alpha is 1
-			//final_color.a = 1.0;
 		}
 
 		// 5. NEXT SAMPLE
 		current_sample += step_vec;
 
-		// EARLY TERMINATION
+		// Early termination step
 		if (earlyTermination(current_sample, final_color)) break;
 	}
 
