@@ -55,12 +55,12 @@ void isoColor( inout vec4 final_color, vec4 sample_color, vec3 gradient )
 	// Computes sample color to shade the isosurface
 	vec3 N = gradient;
 	// L : vector towards the light
-	vec3 L = normalize(u_light_position - v_position);
+	vec3 L = normalize(u_light_position - (v_position+1.0/2.0));
 	float NdotL = clamp(dot(N,L), 0.01, 0.99);
 	sample_color.rgb *= NdotL;
 	sample_color.rgb *= sample_color.a;
 
-	sample_color = (sample_color+1.0)/2.0;
+	//sample_color = (sample_color+1.0)/2.0;
 
 	final_color += sample_color * (1 - final_color.a);
 }
@@ -112,12 +112,7 @@ void main()
 		float density = texture3D(u_texture, (current_sample+1.0)/2.0).r;
 
 		// 3. CLASSIFICATION
-		//vec4 sample_color = texture2D(u_transfer_function, vec2(density, 1.0));
-		vec4 sample_color;
-		if (density < 0.01) sample_color = vec4(0.0);
-		else if (density < 0.24) sample_color = vec4(1.0, 0.0, 0.0, 0.3);
-		else if (density < 0.31) sample_color = vec4(0.0, 1.0, 0.0, 0.3);
-		else sample_color = vec4(1.0, 1.0, 1.0, 1.0);
+		vec4 sample_color = texture2D(u_transfer_function, vec2(density, 1.0));
 
 		// 4. COMPOSITION
 		sample_color.rgb *= sample_color.a;
