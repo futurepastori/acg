@@ -25,6 +25,13 @@ uniform float u_clip_plane_x;
 uniform float u_clip_plane_y;
 uniform float u_clip_plane_z;
 
+float jittering()
+{
+	vec2 frag_coord = gl_FragCoord.xy; // getting coordinates from fragment instead of sampling from vec
+	float jittering = texture2D(u_noise_texture, frag_coord*0.01).x;// getting only one channel as float
+	return jittering;
+}
+
 vec3 computeGradient( vec3 current_sample, float step_length )
 {
 	// GRADIENT
@@ -56,6 +63,20 @@ void isoColor( inout vec4 final_color, vec4 sample_color, vec3 gradient )
 	final_color += sample_color * (1 - final_color.a);
 }
 
+bool earlyTermination( vec3 current_sample , vec4 final_color)
+{
+	// EARLY TERMINATION
+	// Are we checking outside the limits of the volume's planes?
+	// Remember that we are in a normalized space in [0, 1]
+	if (current_sample.x > PLANE_LIMIT || current_sample.x < -PLANE_LIMIT) return true;		
+	if (current_sample.y > PLANE_LIMIT || current_sample.y < -PLANE_LIMIT) return true;		
+	if (current_sample.z > PLANE_LIMIT || current_sample.z < -PLANE_LIMIT) return true;
+	// when final color alpha reaches 1 --> the color will not change anymore.
+	if (final_color.a >= 1) return true;
+
+	return false;
+}
+
 void main()
 {
 	//0. DUMMY VARIABLES
@@ -64,17 +85,13 @@ void main()
 	
 	// 1. RAY SETUP
 	vec3 current_sample = v_position; // first sample pos
-
 	vec3 ray_origin = v_local_camera_position; // ray origin
-
 	vec3 ray_dir = normalize(current_sample - ray_origin); // ray direction
 	vec3 step_vec = ray_dir * u_ray_step; // Step vector
 
 	// 1.5 JITTERING
 	if(apply_jittering){
-		vec2 frag_coord = gl_FragCoord.xy; // getting coordinates from fragment instead of sampling from vec
-		float jittering = texture2D(u_noise_texture, frag_coord*0.01).x;	// getting only one channel as float
-		current_sample += step_vec * jittering;	// modulate the step vector by the deviation of the jittering
+		current_sample += step_vec * jittering();	// modulate the step vector by the deviation of the jittering
 	}
 	
 	float step_length = length(step_vec);
@@ -112,13 +129,8 @@ void main()
 		current_sample += step_vec;
 
 		// EARLY TERMINATION
-		// Are we checking outside the limits of the volume's planes?
-		// Remember that we are in a normalized space in [0, 1]
-		if (current_sample.x > PLANE_LIMIT || current_sample.x < -PLANE_LIMIT) break;		
-		if (current_sample.y > PLANE_LIMIT || current_sample.y < -PLANE_LIMIT) break;		
-		if (current_sample.z > PLANE_LIMIT || current_sample.z < -PLANE_LIMIT) break;
-		// when final color alpha reaches 1 --> the color will not change anymore.
-		if (final_color.a >= 1) break;
+		if (earlyTermination(current_sample, final_color)) break;
+
 	}
 
 	gl_FragColor = final_color*2;
